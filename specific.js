@@ -39,22 +39,31 @@ function smallMultiples (data) {
     // genre
     data_year.forEach((d, year) => {
         const by_genre = d3.group(d, t => t.genre); // groups data items by year
-        let sub_data = [];
+        let genre_data = [];
 
-        data_year.forEach((booksInInterval, intervalLabel) => {
-            const genres = d3.group(booksInInterval, b => b.genre);
-            sub_data[intervalLabel] = {};
-            
-            genres.forEach((booksList, genreName) => {
-                sub_data[intervalLabel][genreName] = booksList; 
+        // Para cada género dentro do intervalo…
+        by_genre.forEach((booksInGenre, genreName) => {
+
+            genre_data.push({
+                genre: genreName,
+                books: booksInGenre.map(b => ({
+                    name: b.name,
+                    author: b.author,
+                    publisher: b.publisher,
+                    pages: b.pages,
+                    rating: b.rating,
+                    lang: b.lang,
+                    date: b.date
+                }))
             });
+
         });
 
-        console.log("INTERVALO:", intervalLabel);
-Object.entries(final_data[intervalLabel]).forEach(([genre, books]) => {
-    console.log("  → Género:", genre, "| total:", books.length);
-    console.table(books.slice(0, 5)); // primeiros 5 livros só para ver
-});
+        // Estrutura final organizada por intervalo
+        my_data.push({
+            interval: year,
+            genres: genre_data
+        });
 
         /* sort by year
         sub_data.sort((a, b) => {
@@ -63,6 +72,8 @@ Object.entries(final_data[intervalLabel]).forEach(([genre, books]) => {
 
         my_data.push(sub_data); */
     });
+
+    console.log(my_data);
 /*
     console.log(my_data);
 
