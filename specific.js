@@ -162,7 +162,7 @@ function process_data(data) {
             .style("margin-right", "8px")
             .style("cursor", "pointer")
             .style("border", "none")
-            .style("color", "white")
+            .style("color", "black")
             .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
             .style("background-color", d => color_scale(d))
             .style("opacity", 1)
