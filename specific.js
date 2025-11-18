@@ -4,7 +4,7 @@ let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width,
 window.onload = function () {
     // graph general attributes
     canvas_width = window.innerWidth * 0.75;
-    canvas_height = 900;
+    canvas_height = window.innerHeight * 0.80;
     padding_width = 40;
     padding_height = 60;
     bookshelf_width = canvas_width - padding_width * 2;
@@ -60,69 +60,98 @@ function smallMultiples(data) {
     });
     // console.log(valid_intervals);
 
-    // select first interval of years
-    const selected_interval = valid_intervals[5][1];
-    console.log(selected_interval);
+    // create buttons container
+    d3.select('#year_buttons_container').remove(); // remove old container, if there is any
+    let year_buttons_container = d3.select('body')
+        .append('div')
+        .attr('id', 'buttons-container')
+        .style('position', 'fixed')
+        .style('bottom', '60px')
+        .style('left', '90px')
 
-    // obter todos os gêneros únicos
-    let unique_genres = Array.from(new Set(selected_interval.map(d => d.genre)));
-    console.log(unique_genres);
+    // create buttons for each interval of years
+    year_buttons_container.selectAll('button')
+        .data(valid_intervals)
+        .enter()
+        .append('button')
+        .text(d => d[0])  // text of the button = interval of years
+        .style('margin-right', '-2px')
+        .style('padding', '10px')
+        .style('background-color', 'white')
+        .on('click', (event, d) => {
+            // clear previous charts
+            svg.selectAll("*").remove();
 
-    // criar escala de cores para os gêneros
-    let color_scale = d3.scaleOrdinal()
-        .domain(unique_genres)
-        .range(d3.schemeSet2);
+            // call fuction to draw the selected interval
+            draw_interval(d[1]);
+        });
 
-    // scale book height according to its rating
-    const height_scale = d3.scaleLinear()
-        .domain([1, 5])
-        .range([10, 70]);
+    // by default, it shows the first interval
+    draw_interval(valid_intervals[0][1]);
 
-    // scale book width according to its pages
-    function width_scale(pages) {
-        if (pages <= 200) return 15;
-        else if (pages <= 400) return 20;
-        else if (pages <= 600) return 30;
-        else if (pages <= 800) return 40;
-        else return 50; // more than 800
-    }
+    // função para desenhar livros do intervalo selecionado
+    function draw_interval(selected_interval) {
 
-    // create a group to organize its position
-    let book_group = svg.append("g")
-        .attr("transform", `translate(${padding_width}, ${padding_height})`);
+        // obter todos os gêneros únicos
+        let unique_genres = Array.from(new Set(selected_interval.map(d => d.genre)));
+        console.log(unique_genres);
 
-    let filtered_books = selected_interval.filter(d => d.rating > 0);
+        // criar escala de cores para os gêneros
+        let color_scale = d3.scaleOrdinal()
+            .domain(unique_genres)
+            .range(d3.schemeSet2);
 
-    // calculate positions
-    let x_positions = [];
-    let y_positions = [];
-    let current_x = padding_width;
-    let current_y = padding_height;
+        // scale book height according to its rating
+        const height_scale = d3.scaleLinear()
+            .domain([1, 5])
+            .range([10, 70]);
 
-    filtered_books.forEach(d => {
-        let w = width_scale(d.pages);
-
-        // se passar do limite, quebra linha
-        if (current_x + w > padding_width + bookshelf_width) {
-            current_x = padding_width;       
-            current_y += shelf_height;   
+        // scale book width according to its pages
+        function width_scale(pages) {
+            if (pages <= 200) return 15;
+            else if (pages <= 400) return 20;
+            else if (pages <= 600) return 30;
+            else if (pages <= 800) return 40;
+            else return 50; // more than 800
         }
 
-        x_positions.push(current_x);
-        y_positions.push(current_y);
+        // create a group to organize its position
+        let book_group = svg.append("g")
+            .attr("transform", `translate(${padding_width}, ${padding_height})`);
 
-        current_x += w + 5;
-    });
+        let filtered_books = selected_interval.filter(d => d.rating > 0);
 
-    // draw books
-    book_group.selectAll('rect')
-        .data(filtered_books)  // pega os livros do primeiro intervalo
-        .enter()
-        .append('rect')
-        .attr('x', (d, i) => x_positions[i])
-        .attr('y', (d, i) => y_positions[i] - height_scale(Math.floor(d.rating)))
-        .attr('width', d => width_scale(d.pages))
-        .attr('height', d => height_scale(Math.floor(d.rating)))
-        .attr('fill', d => color_scale(d.genre));
+        // calculate positions
+        let x_positions = [];
+        let y_positions = [];
+        let current_x = padding_width;
+        let current_y = padding_height;
+
+        filtered_books.forEach(d => {
+            let w = width_scale(d.pages);
+
+            // se passar do limite, quebra linha
+            if (current_x + w > padding_width + bookshelf_width) {
+                current_x = padding_width;
+                current_y += shelf_height;
+            }
+
+            x_positions.push(current_x);
+            y_positions.push(current_y);
+
+            current_x += w + 5;
+        });
+
+        // draw books
+        book_group.selectAll('rect')
+            .data(filtered_books)  // pega os livros do primeiro intervalo
+            .enter()
+            .append('rect')
+            .attr('x', (d, i) => x_positions[i])
+            .attr('y', (d, i) => y_positions[i] - height_scale(Math.floor(d.rating)))
+            .attr('width', d => width_scale(d.pages))
+            .attr('height', d => height_scale(Math.floor(d.rating)))
+            .attr('fill', d => color_scale(d.genre));
+    }
+
 }
-
