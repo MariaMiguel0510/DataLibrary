@@ -7,7 +7,7 @@ window.onload = function() {
         return {
             name: d.Name,
             author: d.Author,
-            date: +d.Publication_date.slice(0, 4), // make this entry a number
+            date: +d.Publication_date.slice(0, 4), 
             rating: +d.av_Rating,
             lang: d.Language,
             pages: +d.Pages,
@@ -20,33 +20,36 @@ window.onload = function() {
 
 function smallMultiples (data) {
 
-    // groups the data by year
-    // transforms the year in a interval “X to Y”
     function interval(year) {
         year = +year;
         const start = Math.floor(year / 5) * 5;
-        const end = start + 5;      // fim inclusivo
+        const end = start + 5;
         return `${start} a ${end}`;
     }
 
-    // group the years in intervals
-    let data_year = d3.group(data, d => interval(d.date));
+    // group by intervals of 5 years
+    let data_year = Array.from(d3.group(data, d => interval(d.date)));
+
+    // sort cronologically
+    data_year.sort((a, b) => {
+        const start_a = +a[0].split(" a ")[0];
+        const start_b = +b[0].split(" a ")[0];
+        return d3.ascending(start_a, start_b);
+    });
+
     let my_data = [];
 
-    //console.log(data_year);
-    
-    // for each interval of 5 years:
-    // genre
-    data_year.forEach((d, year) => {
-        const by_genre = d3.group(d, t => t.genre); // groups data items by year
-        let genre_data = [];
+    data_year.forEach(([intervalo, livros]) => {
 
-        // Para cada género dentro do intervalo…
-        by_genre.forEach((booksInGenre, genreName) => {
+        // group by genre, inside the interval of years
+        const by_genre = d3.group(livros, d => d.genre);
 
-            genre_data.push({
-                genre: genreName,
-                books: booksInGenre.map(b => ({
+        let sub_data = [];
+
+        by_genre.forEach((books_genre, genre) => {
+            sub_data.push({
+                genre: genre,
+                books: books_genre.map(b => ({
                     name: b.name,
                     author: b.author,
                     publisher: b.publisher,
@@ -59,21 +62,16 @@ function smallMultiples (data) {
 
         });
 
-        // Estrutura final organizada por intervalo
+        // final structure
         my_data.push({
-            interval: year,
-            genres: genre_data
+            interval: intervalo,  
+            genres: sub_data
         });
 
-        /* sort by year
-        sub_data.sort((a, b) => {
-            return d3.descending(a.year, b.year);
-        });
-
-        my_data.push(sub_data); */
     });
 
     console.log(my_data);
+
 /*
     console.log(my_data);
 
