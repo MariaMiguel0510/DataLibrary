@@ -1,13 +1,30 @@
 let books;
+let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
 
-window.onload = function() {
+window.onload = function () {
+    // graph general attributes
+    canvas_width = 1200;
+    canvas_height = 900;
+    padding_width = 40;
+    padding_height = 60;
+    bookshelf_width = canvas_width - padding_width * 2;
+    gap = 2;
+    shelf_height = 80;
+
+    // new svg element
+    svg = d3.select('body')
+        .append('svg')
+        .attr('width', canvas_width)
+        .attr('height', canvas_height);
+
+
     books = "livros_dados.csv";
 
     d3.csv(books, d => {
         return {
             name: d.Name,
             author: d.Author,
-            date: +d.Publication_date.slice(0, 4), 
+            date: +d.Publication_date.slice(0, 4),
             rating: +d.av_Rating,
             lang: d.Language,
             pages: +d.Pages,
@@ -18,90 +35,94 @@ window.onload = function() {
 }
 
 
-function smallMultiples (data) {
+function smallMultiples(data) {
 
+    // create intervals of 5 years
     function interval(year) {
         year = +year;
         const start = Math.floor(year / 5) * 5;
         const end = start + 5;
-        return `${start} a ${end}`;
+        return { start, end, label: `${start}-${end}` };
     }
 
-    // group by intervals of 5 years
-    let data_year = Array.from(d3.group(data, d => interval(d.date)));
+    // group books by intervals
+    let group_interval = d3.group(data, d => interval(d.date).label);
 
-    // sort cronologically
-    data_year.sort((a, b) => {
-        const start_a = +a[0].split(" a ")[0];
-        const start_b = +b[0].split(" a ")[0];
-        return d3.ascending(start_a, start_b);
+    // show intervals with at least 10 books
+    let valid_intervals = Array.from(group_interval)
+        .filter(([intervalLabel, livros]) => livros.length >= 10);
+
+    // sort years cronologically
+    valid_intervals.sort((a, b) => {
+        const startA = +a[0].split("-")[0];
+        const startB = +b[0].split("-")[0];
+        return d3.ascending(startA, startB);
+    });
+    // console.log(valid_intervals);
+
+    // select first interval of years
+    const selected_interval = valid_intervals[5][1];
+    console.log(selected_interval);
+
+    // obter todos os gêneros únicos
+    let unique_genres = Array.from(new Set(selected_interval.map(d => d.genre)));
+    console.log(unique_genres);
+
+    // criar escala de cores para os gêneros
+    let color_scale = d3.scaleOrdinal()
+        .domain(unique_genres)
+        .range(d3.schemeSet2);
+
+    // scale book height according to its rating
+    const height_scale = d3.scaleLinear()
+        .domain([1, 5])
+        .range([10, 70]);
+
+    // scale book width according to its pages
+    function width_scale(pages) {
+        if (pages <= 200) return 20;
+        else if (pages <= 400) return 30;
+        else if (pages <= 600) return 40;
+        else if (pages <= 800) return 50;
+        else return 60; // more than 800
+    }
+
+    // create a group to organize its position
+    let book_group = svg.append("g")
+        .attr("transform", `translate(${padding_width}, ${padding_height})`);
+
+    let filtered_books = selected_interval.filter(d => d.rating > 0);
+
+    // calculate positions
+    let x_positions = [];
+    let y_positions = [];
+    let current_x = padding_width;
+    let current_y = padding_height;
+
+    filtered_books.forEach(d => {
+        let w = width_scale(d.pages);
+
+        // se passar do limite, quebra linha
+        if (current_x + w > padding_width + bookshelf_width) {
+            current_x = padding_width;       
+            current_y += shelf_height;   
+        }
+
+        x_positions.push(current_x);
+        y_positions.push(current_y);
+
+        current_x += w + 5;
     });
 
-    let my_data = [];
-
-    data_year.forEach(([intervalo, livros]) => {
-
-        // group by genre, inside the interval of years
-        const by_genre = d3.group(livros, d => d.genre);
-
-        let sub_data = [];
-
-        by_genre.forEach((books_genre, genre) => {
-            sub_data.push({
-                genre: genre,
-                books: books_genre.map(b => ({
-                    name: b.name,
-                    author: b.author,
-                    publisher: b.publisher,
-                    pages: b.pages,
-                    rating: b.rating,
-                    lang: b.lang,
-                    date: b.date
-                }))
-            });
-
-        });
-
-        // final structure
-        my_data.push({
-            interval: intervalo,  
-            genres: sub_data
-        });
-
-    });
-
-    console.log(my_data);
-
-/*
-    console.log(my_data);
-
-    let genres = svg.selectAll('g')
-        .data(my_data)
-        .join(
-            enter => enter.append('g')
-                .filter(d => d.length > 5) // filter data so only genres with more than 5 entries appear
-                .attr('id', d => d[0].genre)
-                // put in a grid of 4x4
-                // (i%4) -> gives me the column index
-                // Math.floor(i/4) -> gives me the row index
-                .attr("transform", (d, i) => "translate(" + (radius + (radius*2)*(i%4)) + "," + (170 + 330 * Math.floor(i/4)) + ")")
-                .style("text-anchor", "middle")
-        );
-
-    // title for each sub-plot
-    genres
-        .append('text')
-        .text( d => d[0].genre)
-        .attr('x', 0)
-        .attr('y', -radius+20)
-        .style('text-center', 'center');
-
-    max_pop = d3.max(my_data, d => {
-        console.log(d)
-        return d3.max(d, t => t.avg_pop)
-    });
-    max_nMovies = d3.max(my_data, d => d3.max(d, t => t.n_mov));
-    max_nAwards = d3.max(my_data, d => d3.max(d, t => t.awards));
-
-    draw_yearAng(genres); */
+    // draw books
+    book_group.selectAll('rect')
+        .data(filtered_books)  // pega os livros do primeiro intervalo
+        .enter()
+        .append('rect')
+        .attr('x', (d, i) => x_positions[i])
+        .attr('y', (d, i) => y_positions[i] - height_scale(Math.floor(d.rating)))
+        .attr('width', d => width_scale(d.pages))
+        .attr('height', d => height_scale(Math.floor(d.rating)))
+        .attr('fill', d => color_scale(d.genre));
 }
+
