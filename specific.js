@@ -3,7 +3,7 @@ let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width,
 
 window.onload = function () {
     // graph general attributes
-    canvas_width = 1200;
+    canvas_width = window.innerWidth * 0.75;
     canvas_height = 900;
     padding_width = 40;
     padding_height = 60;
@@ -80,11 +80,11 @@ function smallMultiples(data) {
 
     // scale book width according to its pages
     function width_scale(pages) {
-        if (pages <= 200) return 20;
-        else if (pages <= 400) return 30;
-        else if (pages <= 600) return 40;
-        else if (pages <= 800) return 50;
-        else return 60; // more than 800
+        if (pages <= 200) return 15;
+        else if (pages <= 400) return 20;
+        else if (pages <= 600) return 30;
+        else if (pages <= 800) return 40;
+        else return 50; // more than 800
     }
 
     // create a group to organize its position
