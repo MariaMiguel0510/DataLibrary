@@ -1,8 +1,6 @@
 let books;
 let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-
-let svg, year_buttons_container, genre_buttons_container;
-
+let svg, year_buttons_container, genre_buttons_container, arrow_up, arrow_down;
 let selected_genres = new Set();
 
 
@@ -32,17 +30,43 @@ window.onload = function () {
         .style('bottom', '60px')
         .style('left', (padding_width * 2) + "px");
 
-    // create genre container
-    d3.select('#genre_buttons_container').remove(); // remove old container, if there is any
-    genre_buttons_container = d3.select("body")
+    // lateral container
+    genre_nav = d3.select("body")
         .append("div")
-        .attr("id", "genre_buttons_container")
+        .attr("id", "genre_nav")
         .style("position", "absolute")
         .style("top", padding_height + (innerHeight * 0.3) + "px")
         .style("right", (padding_width * 2) + "px")
         .style("display", "flex")
         .style("flex-direction", "column")
+        .style("align-items", "center")
         .style("gap", "10px");
+
+    // up button
+    arrow_up = genre_nav.append("button")
+        .text("▲")
+        .style("font-size", "22px")
+        .style("padding", "5px 10px")
+        .style("background-color", "white")
+        .style("border", "0px")
+        .style("cursor", "pointer");
+
+    // create genre container
+    genre_buttons_container = genre_nav.append("div")
+        .append("div")
+        .attr("id", "genre_buttons_container")
+        .style("display", "flex")
+        .style("flex-direction", "column")
+        .style("gap", "10px");
+
+    // down button
+    arrow_down = genre_nav.append("button")
+        .text("▼")
+        .style("font-size", "22px")
+        .style("padding", "5px 10px")
+        .style("background-color", "white")
+        .style("border", "0px")
+        .style("cursor", "pointer");
 
 
     books = "livros_dados.csv";
@@ -151,41 +175,69 @@ function process_data(data) {
 
     // DRAW THE GENRE BUTTONS ---------------------------------------------------------------
     function create_genre_buttons(valid_genres, filtered_books, color_scale) {
-        genre_buttons_container.selectAll("*").remove();
 
-        genre_buttons_container.selectAll("button")
-            .data(valid_genres)
-            .enter()
-            .append("button")
-            .text(d => d)
-            .style("padding", "10px")
-            .style("margin-right", "8px")
-            .style("cursor", "pointer")
-            .style("border", "none")
-            .style("color", "black")
-            .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
-            .style("background-color", d => color_scale(d))
-            .style("opacity", 1)
-            .on("click", function (event, genre) {
-                // alternate selected genre
-                if (selected_genres.has(genre)) {
-                    selected_genres.delete(genre);
-                } else {
-                    selected_genres.add(genre);
-                }
+        let page_size = Math.min(6, valid_genres.length); // if there's 6/+ = 6; if there's 4 = 4
+        let start_index = 0; // initial position
 
-                // button feedback
-                d3.select(this).style("opacity", selected_genres.has(genre) ? 0.6 : 1);
+        function render_page() {
+            genre_buttons_container.selectAll("*").remove();
 
-                // update books visibility
-                svg.selectAll("rect")
-                    .style("opacity", d => {
-                        return (
-                            selected_genres.size === 0 ||
-                            selected_genres.has(d.genre)
-                        ) ? 1 : 0;   // it only shows the selected ones
-                    });
-            });
+            let page_genres = [];
+
+            for (let i = 0; i < page_size; i++) {
+                // circular logic
+                let index = (start_index + i) % valid_genres.length;
+                page_genres.push(valid_genres[index]);
+            }
+
+            genre_buttons_container.selectAll("button")
+                .data(page_genres)
+                .enter()
+                .append("button")
+                .text(d => d)
+                .style("padding", "10px")
+                .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
+                .style("cursor", "pointer")
+                .style("border", "none")
+                .style("color", "black")
+                .style("background-color", d => color_scale(d))
+                .style("opacity", 1)
+                .on("click", function (event, genre) {
+                    // alternate selected genre
+                    if (selected_genres.has(genre)) {
+                        selected_genres.delete(genre);
+                    } else {
+                        selected_genres.add(genre);
+                    }
+
+                    // button feedback
+                    d3.select(this).style("opacity", selected_genres.has(genre) ? 0.6 : 1);
+
+                    // update books visibility
+                    svg.selectAll("rect")
+                        .style("opacity", d => {
+                            return (
+                                selected_genres.size === 0 ||
+                                selected_genres.has(d.genre)
+                            ) ? 1 : 0;   // it only shows the selected ones
+                        });
+                });
+        }
+
+        // ARROW EVENTS  ---------------------------------------------
+        arrow_up.on("click", () => {
+            start_index = (start_index - 1 + valid_genres.length) % valid_genres.length;
+            render_page();
+        });
+
+        arrow_down.on("click", () => {
+            start_index = (start_index + 1) % valid_genres.length;
+            render_page();
+        });
+
+
+        // first render
+        render_page();
     }
 
 
