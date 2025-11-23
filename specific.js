@@ -159,10 +159,14 @@ function process_data(data) {
             .map(([genre]) => genre);
         filtered_books = filtered_books.filter(d => valid_genres.includes(d.genre));
 
-        // create a color scale for genres
+        let genre_colors = ["#B62123", "#ED536D", "#E47476", "#F36D14", "#FF9D52", 
+        "#F3B186", "#D6A315", "#FFCB3E", "#FFDF88", "#40755E", "#B7B427",
+        "#CCE193", "#334FD7", "#6579C7", "#BFD3EB", "#82419D", "#BD73C3",
+        "#E4B1FF", "#FB3E96", "#FD85B3", "#FFCAD1", "#37B6E5", "#7FDCFD"];
+
         let color_scale = d3.scaleOrdinal()
             .domain(valid_genres)
-            .range(d3.schemeSet2);
+            .range(genre_colors.slice(0, valid_genres.length));
 
 
         // create genre buttons
