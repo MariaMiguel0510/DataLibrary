@@ -2,19 +2,19 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, genre_buttons_container, arrow_up, arrow_down;
+    let svg, year_buttons_container, genre_buttons_container;
     let selected_genres = new Set();
 
 
     // INITIALIZATION
     // responsive dimensions
-    padding_width = 30;
+    padding_width = 60;
     padding_height = 60;
 
     canvas_width = containerSelector.node().clientWidth - padding_width * 2;
     canvas_height = containerSelector.node().clientHeight - padding_height * 2;
 
-    bookshelf_width = canvas_width - padding_width * 2;
+    bookshelf_width = canvas_width - padding_width * 5;
     gap = 2;
     shelf_height = 80;
 
@@ -33,44 +33,17 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style('bottom', '60px')
         .style('left', (padding_width * 2) + "px");
 
-    // lateral container
-    let genre_nav = containerSelector
-        .append("div")
-        .attr("id", "genre_nav")
-        .style("position", "absolute")
-        .style("top", padding_height + (innerHeight * 0.3) + "px")
-        .style("right", (padding_width * 2) + "px")
-        .style("display", "flex")
-        .style("flex-direction", "column")
-        .style("align-items", "center")
-        .style("gap", "10px");
-
-    // up button
-    arrow_up = genre_nav.append("button")
-        .text("▲")
-        .style("font-size", "22px")
-        .style("padding", "5px 10px")
-        .style("background-color", "white")
-        .style("border", "0px")
-        .style("cursor", "pointer");
-
     // create genre container
-    genre_buttons_container = genre_nav.append("div")
+    genre_buttons_container = containerSelector
         .append("div")
         .attr("id", "genre_buttons_container")
         .style("display", "flex")
+        .style("position", "absolute")
+        .style("top", padding_height + "px")
+        .style("right", (padding_width * 2) + "px")
+        .style("display", "flex")
         .style("flex-direction", "column")
         .style("gap", "10px");
-
-    // down button
-    arrow_down = genre_nav.append("button")
-        .text("▼")
-        .style("font-size", "22px")
-        .style("padding", "5px 10px")
-        .style("background-color", "white")
-        .style("border", "0px")
-        .style("cursor", "pointer");
-
 
     books = csvFile;
 
@@ -91,36 +64,80 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     // DATA PROCESSIGN ---------------------------------------------------------------
     function process_data(data) {
+        // get all the possible genres
+        let all_genres = Array.from(new Set(data.map(d => d.genre))).sort();
 
-        // create intervals of 5 years
+        /* fixed color scale for all genres
+        let global_color_scale = d3.scaleOrdinal()
+            .domain(all_genres)
+            .range(d3.schemeTableau10.concat(d3.schemeSet2, d3.schemeDark2)); */
+
+        let genre_colors = {
+            "Suspense": "#F44D27", "Children's Literature": "#FFE365",
+            "Dramatic Literature": "#A8376D", "Comics": "#468168",
+            "Sciences": "#FF9D52", "Fantasy": "#A3CCFF",
+            "Fiction": "#C688CB", "Lifestyle": "#4763E8",
+            "Nonfiction": "#C5E661", "Romance": "#FF589D"
+        };
+
+        let global_color_scale = d3.scaleOrdinal()
+            .domain(all_genres)
+            .range(all_genres.map(g => genre_colors[g]));
+
+        // create intervals of 2 years
         function interval(year) {
             year = +year;
-            const start = Math.floor(year / 5) * 5;
-            const end = start + 4;
-            return { start, end, label: `${start}-${end}` };
+            const start = Math.floor(year / 2) * 2;
+            const end = start + 1;
+            return `${start}-${end}`;
         }
 
-        // group books by intervals
-        let group_interval = d3.group(data, d => interval(d.date).label);
+        // group books into intervals
+        let group_interval = d3.group(data, d => interval(d.date));
 
-        // show intervals with at least 10 books
-        let valid_intervals = Array.from(group_interval)
-            .filter(([label, livros]) => livros.length >= 10);
+        // convert to array
+        let all_intervals = Array.from(group_interval);
 
-        // sort years cronologically
+        // FINAL FILTER: only intervals with >=10 books AFTER all internal filters
+        let valid_intervals = all_intervals
+            .map(([label, books]) => {
+                return {
+                    label,
+                    books: filter_books_inside_interval(books)
+                };
+            })
+            .filter(d => d.books.length >= 10);
+
+        // sort by year
         valid_intervals.sort((a, b) => {
-            const startA = +a[0].split("-")[0];
-            const startB = +b[0].split("-")[0];
+            const startA = +a.label.split("-")[0];
+            const startB = +b.label.split("-")[0];
             return d3.ascending(startA, startB);
         });
-        // console.log(valid_intervals);
 
         // create year buttons
         create_year_buttons(valid_intervals);
 
-        // by default, it shows the first interval
-        draw_interval(valid_intervals[0][1]);
+        // draw first interval by default
+        draw_interval(valid_intervals[0].books);
 
+
+        // FILTER BOOKS INSIDE THE INTERVAL ----------------------------------------------------------
+        function filter_books_inside_interval(interval_books) {
+
+            // remove rating 0
+            let filtered = interval_books.filter(d => d.rating > 0);
+
+            // count genres
+            let genre_counts = d3.rollup(filtered, v => v.length, d => d.genre);
+
+            // keep only genres with >=5 books
+            let valid_genres = Array.from(genre_counts)
+                .filter(([g, count]) => count >= 5)
+                .map(([g]) => g);
+
+            return filtered.filter(d => valid_genres.includes(d.genre));
+        }
 
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
         function create_year_buttons(valid_intervals) {
@@ -129,7 +146,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .data(valid_intervals)
                 .enter()
                 .append('button')
-                .text(d => d[0])  // text of the button = year interval
+                .text(d => d.label)  // text of the button = year interval
+                .style("font-size", "11px")
                 .style('margin-right', '-2px')
                 .style('padding', '10px')
                 .style('width', `${(canvas_width - padding_width) / valid_intervals.length}px`)
@@ -139,112 +157,61 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     svg.selectAll("*").remove();
 
                     // call fuction to draw the selected interval
-                    draw_interval(d[1]);
+                    draw_interval(d.books);
                 });
         }
 
 
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
-        function draw_interval(selected_interval) {
-            // remove books with 0 rating    
-            let filtered_books = selected_interval.filter(d => d.rating > 0);
-
-            // count how many books exists by genre
-            let genre_counts = d3.rollup(
-                filtered_books,
-                v => v.length,
-                d => d.genre
-            );
-
-            // get genres with 2 or more books
-            let valid_genres = Array.from(genre_counts)
-                .filter(([genre, count]) => count >= 2)
-                .map(([genre]) => genre);
-            filtered_books = filtered_books.filter(d => valid_genres.includes(d.genre));
-
-            let genre_colors = ["#B62123", "#ED536D", "#E47476", "#F36D14", "#FF9D52",
-                "#F3B186", "#D6A315", "#FFCB3E", "#FFDF88", "#40755E", "#B7B427",
-                "#CCE193", "#334FD7", "#6579C7", "#BFD3EB", "#82419D", "#BD73C3",
-                "#E4B1FF", "#FB3E96", "#FD85B3", "#FFCAD1", "#37B6E5", "#7FDCFD"];
-
-            let color_scale = d3.scaleOrdinal()
-                .domain(valid_genres)
-                .range(genre_colors.slice(0, valid_genres.length));
-
+        function draw_interval(selected_books) {
+            // get all genres from this interval
+            let genres_here = Array.from(new Set(selected_books.map(d => d.genre)));
 
             // create genre buttons
-            create_genre_buttons(valid_genres, filtered_books, color_scale);
+            create_genre_buttons(genres_here, selected_books, global_color_scale);
 
-            // draw all the books in this interval
-            draw_books(filtered_books, color_scale);
+            // draw books
+            draw_books(selected_books, global_color_scale);
         }
 
 
         // DRAW THE GENRE BUTTONS ---------------------------------------------------------------
         function create_genre_buttons(valid_genres, filtered_books, color_scale) {
+            genre_buttons_container.selectAll("*").remove();
 
-            let page_size = Math.min(6, valid_genres.length); // if there's 6/+ = 6; if there's 4 = 4
-            let start_index = 0; // initial position
+            genre_buttons_container.selectAll("button")
+                .data(valid_genres)
+                .enter()
+                .append("button")
+                .text(d => d)
+                .style("padding", "10px")
+                .style("margin-right", "8px")
+                .style("cursor", "pointer")
+                .style("border", "none")
+                .style("color", "black")
+                .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
+                .style("background-color", d => color_scale(d))
+                .style("opacity", 1)
+                .on("click", function (event, genre) {
+                    // alternate selected genre
+                    if (selected_genres.has(genre)) {
+                        selected_genres.delete(genre);
+                    } else {
+                        selected_genres.add(genre);
+                    }
 
-            function render_page() {
-                genre_buttons_container.selectAll("*").remove();
+                    // button feedback
+                    d3.select(this).style("opacity", selected_genres.has(genre) ? 0.6 : 1);
 
-                let page_genres = [];
-
-                for (let i = 0; i < page_size; i++) {
-                    // circular logic
-                    let index = (start_index + i) % valid_genres.length;
-                    page_genres.push(valid_genres[index]);
-                }
-
-                genre_buttons_container.selectAll("button")
-                    .data(page_genres)
-                    .enter()
-                    .append("button")
-                    .text(d => d)
-                    .style("padding", "10px")
-                    .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
-                    .style("cursor", "pointer")
-                    .style("border", "none")
-                    .style("color", "black")
-                    .style("background-color", d => color_scale(d))
-                    .style("opacity", 1)
-                    .on("click", function (event, genre) {
-                        // alternate selected genre
-                        if (selected_genres.has(genre)) {
-                            selected_genres.delete(genre);
-                        } else {
-                            selected_genres.add(genre);
-                        }
-
-                        // button feedback
-                        d3.select(this).style("opacity", selected_genres.has(genre) ? 0.6 : 1);
-
-                        // update books visibility
-                        svg.selectAll("rect")
-                            .style("opacity", d => {
-                                return (
-                                    selected_genres.size === 0 ||
-                                    selected_genres.has(d.genre)
-                                ) ? 1 : 0;   // it only shows the selected ones
-                            });
-                    });
-            }
-
-            // ARROW EVENTS  ---------------------------------------------
-            arrow_up.on("click", () => {
-                start_index = (start_index - 1 + valid_genres.length) % valid_genres.length;
-                render_page();
-            });
-
-            arrow_down.on("click", () => {
-                start_index = (start_index + 1) % valid_genres.length;
-                render_page();
-            });
-
-
-            // first render
-            render_page();
+                    // update books visibility
+                    svg.selectAll("rect")
+                        .style("opacity", d => {
+                            return (
+                                selected_genres.size === 0 ||
+                                selected_genres.has(d.genre)
+                            ) ? 1 : 0;   // it only shows the selected ones
+                        });
+                });
         }
 
 
@@ -253,15 +220,15 @@ export function initializeBooksViz(containerSelector, csvFile) {
             // scale book height according to its rating
             const height_scale = d3.scaleLinear()
                 .domain([1, 5])
-                .range([10, 70]);
+                .range([8, 60]);
 
             // scale book width according to its pages
             function width_scale(pages) {
-                if (pages <= 200) return 15;
-                else if (pages <= 400) return 20;
-                else if (pages <= 600) return 30;
-                else if (pages <= 800) return 40;
-                else return 50; // more than 800
+                if (pages <= 200) return 12;
+                else if (pages <= 400) return 17;
+                else if (pages <= 600) return 22;
+                else if (pages <= 800) return 27;
+                else return 32; // more than 800
             }
 
             // calculate positions

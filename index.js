@@ -30,7 +30,7 @@ window.onload = function () {
     specific_container = container(d3.select('main'), 'div', 'calc(100vw - 83px)');
     specific_spine = spine(specific_container, 'div', '80px', '110vh', '0', '2', 'pointer', false);
     specific_label = label(specific_spine, 'h3', 'SPECIFIC');
-    initializeBooksViz(specific_container, 'livros_dados.csv');
+    initializeBooksViz(specific_container, 'books.csv');
     mouse_effect(specific_spine, '#B79FE9', 'white');//mouseover fill effect
     //OPENING TOGGLE INFO
     toggle(specific_spine, [info_container, edition_container, specific_container], ['calc(100vw - 143px)', 'calc(100vw - 163px)', 'calc(100vw - 83px)'], ['-63px', '-83px', '-3px']);
