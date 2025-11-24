@@ -150,7 +150,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("font-size", "11px")
                 .style('margin-right', '-2px')
                 .style('padding', '10px')
-                .style('width', `${(canvas_width - padding_width) / valid_intervals.length}px`)
+                .style('width', `${(canvas_width - (4.3 * padding_width)) / valid_intervals.length}px`)
                 .style('background-color', 'white')
                 .on('click', (event, d) => {
                     // clear previous charts
