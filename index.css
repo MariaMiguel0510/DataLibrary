@@ -54,11 +54,11 @@ h3 {
 #context_title {
     margin: 0;
     font-weight: 400;
-    font-size: 60px;
+    font-size: 5vw;
 }
 
 p {
     width: 45%;
-    font-size: 14px;
-    line-height: 25px;
+    font-size: 1.1vw;
+    line-height: 160%;
 }
