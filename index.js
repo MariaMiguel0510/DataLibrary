@@ -91,7 +91,7 @@ function container(selected, place) {
         .style('height', '100vh')
         .style('position', 'absolute')
         .style('bottom', '-20px')
-        .style('background-color', 'pink')
+        .style('background-color', 'white')
         .style('transition', 'left 0.9s');
 }
 
