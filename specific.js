@@ -8,19 +8,15 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     // INITIALIZATION
     // responsive dimensions
-    function calculate_layout() {
-        padding_width = window.innerWidth * 0.05;
-        padding_height = window.innerHeight * 0.09;
+    padding_width = window.innerWidth * 0.05;
+    padding_height = window.innerHeight * 0.09;
 
-        canvas_width = containerSelector.node().clientWidth - padding_width * 2;
-        canvas_height = containerSelector.node().clientHeight - padding_height * 2;
+    canvas_width = containerSelector.node().clientWidth - padding_width * 2;
+    canvas_height = containerSelector.node().clientHeight - padding_height * 2;
 
-        bookshelf_width = canvas_width - (3.3 * padding_width);
-        gap = 5;
-        shelf_height = 80;
-    }
-
-    calculate_layout();
+    bookshelf_width = canvas_width - (3.3 * padding_width);
+    gap = 5;
+    shelf_height = 80;
 
     // create books container (for vertical scroll)
     d3.select('#books_container').remove();
@@ -217,12 +213,19 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .text(d => d)
                 .style("padding", "10px")
                 .style("margin-right", "8px")
+                .style("font-size", `${0.9}vw`)
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("justify-content", "flex-start")
+                .style("text-align", "left")
+                .style("padding-left", "15px")
                 .style("cursor", d => genres_present.has(d) ? "pointer" : "default")
                 .style("border", d => `5px solid ${color_scale(d)}`)
                 .style("color", "black")
                 .style("opacity", d => genres_present.has(d) ? 1 : 0.5)
                 .style("pointer-events", d => genres_present.has(d) ? "auto" : "none")
                 .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
                 .style("background-color", d => color_scale(d))
                 .style("box-sizing", "border-box")
                 .on("click", function (event, genre) {
@@ -296,40 +299,4 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr('fill', d => color_scale(d.genre));
         }
     }
-
-    // RESPONSIVE LISTENER -----------------------------------------------------
-    window.addEventListener("resize", () => {
-
-        calculate_layout();
-
-        d3.select('#books_container')
-            .style("width", canvas_width + "px")
-            .style("height", canvas_height + "px");
-
-        svg
-            .attr('width', canvas_width)
-            .attr('height', canvas_height);
-
-        year_buttons_container
-            .style('bottom', (padding_height) + "px")
-            .style('left', (padding_width * 2) + "px");
-
-        genre_buttons_container
-            .style('bottom', (padding_height * 2) + "px")
-            .style('right', (padding_width * 0.5) + "px");
-
-        // redesenhar botões e livros mantendo o intervalo atual
-        let current_interval = valid_intervals[0];
-        d3.selectAll("#year_buttons_container button").remove();
-        d3.selectAll("#genre_buttons_container button").remove();
-        svg.selectAll("*").remove();
-
-        if (valid_intervals.length > 0) {
-            // recriar tudo com novas dimensões
-            let selected_interval = current_interval.books;
-            create_year_buttons(valid_intervals);
-            draw_interval(selected_interval);
-        }
-    });
-
 }
