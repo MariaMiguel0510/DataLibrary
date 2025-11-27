@@ -15,13 +15,13 @@ window.onload = function () {
 
     //EDITION BOOK
     edition_container = container(d3.select('main'), 'div');
-    edition_spine = spine(edition_container, 'div', edition_width, '90vh', -(specific_width), 1, 'auto', true);
-    edition_label = label(edition_spine, 'h3', '2025 EDITION');
+    edition_spine = spine(edition_container, 'div', edition_width, '90vh', 0, 1, 'default', true);
+    edition_label = label(edition_spine, 'h3', '2025 EDITION', 'default');
 
     //INFO BOOK
     info_container = container(d3.select('main'), 'div');
     info_spine = spine(info_container, 'div', info_width, '110vh', 0, 2, 'pointer', false);
-    info_label = label(info_spine, 'h3', 'INFO');
+    info_label = label(info_spine, 'h3', 'INFO', 'pointer');
     mouse_effect(info_spine, '#8CE8FB', 'white');
     //SHOWS CONTEXT
     //seleciona o template do html e insere-o dentro do info_container
@@ -37,7 +37,7 @@ window.onload = function () {
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
     specific_spine = spine(specific_container, 'div', specific_width, '110vh', 0, 2, 'pointer', false);
-    specific_label = label(specific_spine, 'h3', 'SPECIFIC');
+    specific_label = label(specific_spine, 'h3', 'SPECIFIC', 'pointer');
     //IMPORT DATA VISUALIZATION
     initializeBooksViz(specific_container, 'books.csv');
     mouse_effect(specific_spine, '#B79FE9', 'white');
@@ -91,7 +91,7 @@ function container(selected, place) {
         .style('height', '100vh')
         .style('position', 'absolute')
         .style('bottom', '-20px')
-        .style('background-color', 'pink')
+        .style('background-color', 'white')
         .style('transition', 'left 0.9s');
 }
 
@@ -112,15 +112,15 @@ function spine(selected, place, larg, alt, move, index, cursor, roda,) {
 
     if (roda) {
         spine
-        //spine.style('transform', `rotate(20deg) translate(-32vh, 11.7vh)`)
-        spine.style('transform', `rotate(9deg)`)
-            .style('transform-origin', '100% 100%');
+        spine.style('transform', `rotate(9deg) translate(-14.3vh, 3vh)`)
+        //spine.style('transform', `rotate(9deg)`)
+        .style('transform-origin', '100% 100%');
     }
     return spine;
 }
 
 //BOOKS LABELS
-function label(selected, place, texto) {
+function label(selected, place, texto, cursor) {
     return selected
         .append(place)
         .text(texto)
@@ -134,7 +134,8 @@ function label(selected, place, texto) {
         .style('justify-content', 'center')
         .style('align-items', 'center')
         .style('transform', 'scale(-1,-1)')
-        .style('transform-origin', 'center');
+        .style('transform-origin', 'center')
+        .style('cursor', cursor);
 }
 
 //OPENING TOGGLE
