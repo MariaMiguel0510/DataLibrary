@@ -2,7 +2,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, genre_buttons_container, books_container;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container;
     let selected_genres = new Set();
 
 
@@ -12,7 +12,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
     padding_height = window.innerHeight * 0.09;
 
     canvas_width = containerSelector.node().clientWidth - padding_width * 2;
-    canvas_height = containerSelector.node().clientHeight - padding_height * 2;
+    canvas_height = containerSelector.node().clientHeight - padding_height * 2.1;
 
     bookshelf_width = canvas_width - (3.3 * padding_width);
     gap = 5;
@@ -58,10 +58,24 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .attr("id", "genre_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("bottom", (padding_height * 2) + "px")
+        .style("bottom", (padding_height) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
-        .style("gap", "10px");
+        .style("gap", gap + "px");
+
+    // create genre diviser    
+    d3.select('#genre_divider').remove();
+    genre_divider = containerSelector
+        .append('div')
+        .attr('id', 'genre_divider')
+        .style('position', 'absolute')
+        .style('top', '-20px')
+        .style('bottom', '0')
+        .style('width', '2px')
+        .style('background', 'black')
+        .style('right', ((canvas_width * 0.17) + (padding_width * 0.5)) + 'px');
+
+    //`${(window.innerWidth * 0.17) - padding_width}px`
 
     books = csvFile;
 
@@ -151,7 +165,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // FILTER BOOKS INSIDE THE INTERVAL ----------------------------------------------------------
         function filter_books_inside_interval(interval_books) {
-
             // remove rating 0
             let filtered = interval_books.filter(d => d.rating > 0);
 
@@ -168,22 +181,78 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
         function create_year_buttons(valid_intervals) {
+            highlight_bar = year_buttons_container
+                .append("div")
+                .attr("id", "year_highlight")
+                .style("position", "absolute")
+                .style("width", "6px")
+                .style("height", "30px")
+                .style("border", "2px solid black")
+                .style("pointer-events", "none")
+                .style("background", "white")
+                .style("opacity", 0)
+                .style("z-index", 9999)
+                .style("transition", "left 0.15s, top 0.15s, opacity 0.15s");
+
+            year_tooltip = containerSelector
+                .append("div")
+                .attr("id", "year_tooltip")
+                .style("position", "absolute")
+                .style("pointer-events", "none")
+                .style("padding", "4px 8px")
+                .style("background", "none")
+                .style("border", "none")
+                .style("border-radius", "5px")
+                .style("opacity", 0)
+                .style("transition", "opacity 0.15s");
+
+            // calculate number of books per interval
+            let interval_counts = valid_intervals.map(d => d.books.length);
+
+            // gray scale
+            let gray_scale = d3.scaleLog()
+                .domain([d3.min(interval_counts), d3.max(interval_counts)])
+                .range(["#D7D7D7", "#6D6D6D"]);  // light to dark
+
             // create buttons for each year interval
             year_buttons_container.selectAll('button')
                 .data(valid_intervals)
                 .enter()
                 .append('button')
-                .text(d => d.label)  // text of the button = year interval
-                .style("font-size", "11px")
+                .attr("class", "year-button")
+                .html("&nbsp;") // button keeps its size but without text
                 .style('margin-right', '-2px')
-                .style('padding', '10px')
+                .style('padding', '5px')
                 .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
-                .style('background-color', 'white')
-                .on('click', (event, d) => {
+                .style("background-color", d => gray_scale(d.books.length))
+                .style("cursor", "pointer")
+                .on("mouseover", function (event, d) {
+                    let button = event.target;
+                    let rect = button.getBoundingClientRect();
+                    let containerRect = containerSelector.node().getBoundingClientRect();
+
+                    year_tooltip
+                        .html(d.label)
+                        .style("opacity", 1)
+                        .style("left", (rect.left - containerRect.left + rect.width / 2) + "px")
+                        .style("top", (rect.top - containerRect.top - 30) + "px")
+                        .style("transform", "translateX(-50%)");
+                })
+                .on("mouseout", () => year_tooltip.style("opacity", 0))
+
+                .on("click", function (event, d) {
+
+                    const btn = this;
+
+                    highlight_bar
+                        .style("opacity", 1)
+                        .style("left", (btn.offsetLeft + btn.offsetWidth/2 - 3) + "px")
+                        .style("top", (btn.offsetTop - 2) + "px");
+
                     // clear previous charts
                     svg.selectAll("*").remove();
 
-                    // call fuction to draw the selected interval
+                    // draw selected interval
                     draw_interval(d.books);
                 });
         }
