@@ -3,8 +3,10 @@ import { initializeBooksViz } from './specific.js';
 let edition_width, edition_container, edition_spine, edition_label;
 let info_width, info_container, info_spine, info_label, info_text;
 let specific_width, specific_container, specific_spine, specific_label;
-let open = false; // inicialmente todos os livros estão fechados
+let info_open = false; // info inicialmente fechado
+let specific_open = false; //specific inicialmente fechado
 let border = 3; // grossura da borda dos livros
+
 
 // INITIALIZATION
 window.onload = function () {
@@ -13,7 +15,7 @@ window.onload = function () {
 
     //EDITION BOOK
     edition_container = container(d3.select('main'), 'div');
-    edition_spine = spine(edition_container, 'div', edition_width, '90vh', -(specific_width*1.22), 1, 'auto', true);
+    edition_spine = spine(edition_container, 'div', edition_width, '90vh', -(specific_width), 1, 'auto', true);
     edition_label = label(edition_spine, 'h3', '2025 EDITION');
 
     //INFO BOOK
@@ -27,10 +29,10 @@ window.onload = function () {
     info_text = template.content.cloneNode(true);
     info_container.node().appendChild(info_text);
     //TOGGLE INFO
-    toggle(info_spine, [info_container, edition_container],
+    toggle(info_spine, info_open, [info_container, edition_container],
         [`${window.innerWidth - (specific_width + info_width + border)}px`,
-        `${window.innerWidth - (specific_width + edition_width + border)}px`],
-        [`${-border}px`, `calc(-${edition_width - info_width}px - ${border}px)`]);
+        `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`],
+        [`${-border}px`, `calc(-${edition_width}px - ${border}px)`]);
 
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
@@ -40,11 +42,11 @@ window.onload = function () {
     initializeBooksViz(specific_container, 'books.csv');
     mouse_effect(specific_spine, '#B79FE9', 'white');
     //TOGGLE SPECIFIC
-    toggle(specific_spine, [info_container, edition_container, specific_container],
+    toggle(specific_spine, specific_open, [info_container, edition_container, specific_container],
         [`${window.innerWidth - (specific_width + info_width + border)}px`,
-        `${window.innerWidth - (specific_width + edition_width + border)}px`,
+        `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`,
         `${window.innerWidth - (specific_width + border)}px`],
-        [`${-info_width - border * 2}px`, `${-edition_width - border * 2}px`, `${-border}px`]);
+        [`${-info_width - border * 2}px`, `${-(edition_width + info_width) - border * 2}px`, `${-border}px`]);
 
     //POSITION UPDATES
     updatePositions();
@@ -71,7 +73,7 @@ function getWidths() {
 //para que ao redimensionar a janela os seus valores se adaptem
 function updatePositions() {
     //containers
-    edition_container.style('left', `${window.innerWidth - (specific_width + edition_width + border)}px`);
+    edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`);
     info_container.style('left', `${window.innerWidth - (specific_width + info_width + border)}px`);
     specific_container.style('left', `${window.innerWidth - (specific_width + border)}px`);
     //spines
@@ -89,13 +91,13 @@ function container(selected, place) {
         .style('height', '100vh')
         .style('position', 'absolute')
         .style('bottom', '-20px')
-        .style('background-color', 'white')
+        .style('background-color', 'pink')
         .style('transition', 'left 0.9s');
 }
 
 //BOOKS SPINES
 //local selecionado, o que cria, largura, altura, deslocamento, z-index, cursor, é ou não animado
-function spine(selected, place, larg, alt, move, index, cursor, animacao) {
+function spine(selected, place, larg, alt, move, index, cursor, roda,) {
     let spine = selected
         .append(place)
         .style('width', `${larg}px`)
@@ -108,10 +110,11 @@ function spine(selected, place, larg, alt, move, index, cursor, animacao) {
         .style('background-color', 'white')
         .style('cursor', cursor);
 
-    if (animacao) {
+    if (roda) {
         spine
-            .style('transition', 'right 0.9s, transform 0.9s')
-            .style('transform', 'rotate(9deg)');
+        //spine.style('transform', `rotate(20deg) translate(-32vh, 11.7vh)`)
+        spine.style('transform', `rotate(9deg)`)
+            .style('transform-origin', '100% 100%');
     }
     return spine;
 }
@@ -136,7 +139,7 @@ function label(selected, place, texto) {
 
 //OPENING TOGGLE
 //elemento de click, contentores a mover, valores pos abertura, valores pos inicial)
-function toggle(spine, containers, openValues, closedValues) {
+function toggle(spine, open, containers, openValues, closedValues) {
     spine.on('click', function () {
         for (let i = 0; i < containers.length; i++) {//para todos os contentores existentes
             if (open) { //se estiver fechado
@@ -145,6 +148,7 @@ function toggle(spine, containers, openValues, closedValues) {
                 containers[i].style('left', closedValues[i]);
             }
         }
+
         open = !open; //inverte movimento
     });
 }
