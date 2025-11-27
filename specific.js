@@ -2,30 +2,49 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, genre_buttons_container;
+    let svg, year_buttons_container, genre_buttons_container, books_container;
     let selected_genres = new Set();
 
 
     // INITIALIZATION
     // responsive dimensions
     padding_width = window.innerWidth * 0.05;
-    padding_height = window.innerHeight * 0.07;
+    padding_height = window.innerHeight * 0.09;
 
     canvas_width = containerSelector.node().clientWidth - padding_width * 2;
     canvas_height = containerSelector.node().clientHeight - padding_height * 2;
 
-    bookshelf_width = canvas_width - padding_width * 5;
-    gap = 2;
+    bookshelf_width = canvas_width - (3.3 * padding_width);
+    gap = 5;
     shelf_height = 80;
 
+    // create books container (for vertical scroll)
+    d3.select('#books_container').remove();
+    books_container = containerSelector
+        .append("div")
+        .attr("id", "books_container")
+        .style("position", "relative")
+        .style("width", canvas_width + "px")
+        .style("height", canvas_height + "px")
+        .style("overflow-y", "auto")
+        .style("scrollbar-width", "none") // Firefox
+        .style("-ms-overflow-style", "none"); // IE/Edge antigo
+
+    // Remove bar in Chrome/Safari/Edge
+    books_container.append("style").text(`
+    #books_container::-webkit-scrollbar {
+        display: none;
+    }
+    `);
+
     // new svg element
-    svg = containerSelector
+    svg = books_container
         .append('svg')
         .attr('width', canvas_width)
         .attr('height', canvas_height);
 
     // create years container
-    d3.select('#year_buttons_container').remove(); // remove old container, if there is any
+    d3.select('#year_buttons_container').remove();
     year_buttons_container = containerSelector
         .append('div')
         .attr('id', 'year_buttons_container')
@@ -41,7 +60,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("position", "absolute")
         .style("bottom", (padding_height * 2) + "px")
         .style("right", (padding_width * 0.5) + "px")
-        .style("display", "flex")
         .style("flex-direction", "column")
         .style("gap", "10px");
 
@@ -159,7 +177,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("font-size", "11px")
                 .style('margin-right', '-2px')
                 .style('padding', '10px')
-                .style('width', `${(canvas_width - (4.3 * padding_width)) / valid_intervals.length}px`)
+                .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
                 .style('background-color', 'white')
                 .on('click', (event, d) => {
                     // clear previous charts
@@ -200,7 +218,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("color", "black")
                 .style("opacity", d => genres_present.has(d) ? 1 : 0.5)
                 .style("pointer-events", d => genres_present.has(d) ? "auto" : "none")
-                .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
+                .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
                 .style("background-color", d => color_scale(d))
                 .style("box-sizing", "border-box")
                 .on("click", function (event, genre) {
@@ -239,7 +257,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             // calculate positions
             let x_positions = [];
             let y_positions = [];
-            let current_x = padding_width;
+            let current_x = padding_width * 2;
             let current_y = padding_height;
 
             book_data.forEach(d => {
@@ -247,18 +265,21 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
                 // if over the limit, break the line.
                 if (current_x + w > padding_width + bookshelf_width) {
-                    current_x = padding_width;
+                    current_x = padding_width * 2;
                     current_y += shelf_height;
                 }
 
                 x_positions.push(current_x);
                 y_positions.push(current_y);
 
-                current_x += w + 5;
+                current_x += w + gap;
             });
 
-            let book_group = svg.append("g")
-                .attr("transform", `translate(${padding_width}, 0)`);
+            // adjust SVG height dinamically
+            let needed_height = current_y + shelf_height + padding_height;
+            svg.attr("height", Math.max(canvas_height, needed_height));
+
+            let book_group = svg.append("g");
 
             book_group.selectAll('rect')
                 .data(book_data.map((d, i) => ({ ...d, id: i })))
