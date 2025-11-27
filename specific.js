@@ -222,20 +222,20 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr("class", "year-button")
                 .html("&nbsp;") // button keeps its size but without text
                 .style('margin-right', '-2px')
-                .style('padding', '5px')
+                .style('padding', `${canvas_width*0.003}px`)
                 .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
                 .style("background-color", d => gray_scale(d.books.length))
                 .style("cursor", "pointer")
                 .on("mouseover", function (event, d) {
                     let button = event.target;
                     let rect = button.getBoundingClientRect();
-                    let containerRect = containerSelector.node().getBoundingClientRect();
+                    let container_rect = containerSelector.node().getBoundingClientRect();
 
                     year_tooltip
                         .html(d.label)
                         .style("opacity", 1)
-                        .style("left", (rect.left - containerRect.left + rect.width / 2) + "px")
-                        .style("top", (rect.top - containerRect.top - 30) + "px")
+                        .style("left", (rect.left - container_rect.left + (rect.width/2)) + "px")
+                        .style("top", (rect.top - container_rect.top - 30) + "px")
                         .style("transform", "translateX(-50%)");
                 })
                 .on("mouseout", () => year_tooltip.style("opacity", 0))
