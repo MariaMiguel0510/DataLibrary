@@ -8,8 +8,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     // INITIALIZATION
     // responsive dimensions
-    padding_width = 60;
-    padding_height = 60;
+    padding_width = window.innerWidth * 0.05;
+    padding_height = window.innerHeight * 0.07;
 
     canvas_width = containerSelector.node().clientWidth - padding_width * 2;
     canvas_height = containerSelector.node().clientHeight - padding_height * 2;
@@ -30,7 +30,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .append('div')
         .attr('id', 'year_buttons_container')
         .style('position', 'absolute')
-        .style('bottom', '60px')
+        .style('bottom', (padding_height) + "px")
         .style('left', (padding_width * 2) + "px");
 
     // create genre container
@@ -39,8 +39,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .attr("id", "genre_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("top", padding_height + "px")
-        .style("right", (padding_width * 2) + "px")
+        .style("bottom", (padding_height * 2) + "px")
+        .style("right", (padding_width * 0.5) + "px")
         .style("display", "flex")
         .style("flex-direction", "column")
         .style("gap", "10px");
@@ -67,11 +67,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
         // get all the possible genres
         let all_genres = Array.from(new Set(data.map(d => d.genre))).sort();
 
-        /* fixed color scale for all genres
-        let global_color_scale = d3.scaleOrdinal()
-            .domain(all_genres)
-            .range(d3.schemeTableau10.concat(d3.schemeSet2, d3.schemeDark2)); */
-
         let genre_colors = {
             "Suspense": "#F44D27", "Children's Literature": "#FFE365",
             "Dramatic Literature": "#A8376D", "Comics": "#468168",
@@ -80,9 +75,23 @@ export function initializeBooksViz(containerSelector, csvFile) {
             "Nonfiction": "#C5E661", "Romance": "#FF589D"
         };
 
+        let genre_stroke_colors = {
+            "Suspense": "#972C14", "Children's Literature": "#9F8924",
+            "Dramatic Literature": "#53072C", "Comics": "#12412D",
+            "Sciences": "#AF5D1F", "Fantasy": "#3A5D89",
+            "Fiction": "#844189", "Lifestyle": "#14267E",
+            "Nonfiction": "#647B20", "Romance": "#A71B55"
+        };
+
         let global_color_scale = d3.scaleOrdinal()
             .domain(all_genres)
             .range(all_genres.map(g => genre_colors[g]));
+
+        let global_genre_counts = d3.rollup(data, v => v.length, d => d.genre);
+
+        let valid_global_genres = Array.from(global_genre_counts)
+            .filter(([g, count]) => count >= 5)
+            .map(([g]) => g);
 
         // create intervals of 2 years
         function interval(year) {
@@ -164,11 +173,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
         function draw_interval(selected_books) {
-            // get all genres from this interval
-            let genres_here = Array.from(new Set(selected_books.map(d => d.genre)));
-
             // create genre buttons
-            create_genre_buttons(genres_here, selected_books, global_color_scale);
+            create_genre_buttons(valid_global_genres, selected_books, global_color_scale);
 
             // draw books
             draw_books(selected_books, global_color_scale);
@@ -179,6 +185,9 @@ export function initializeBooksViz(containerSelector, csvFile) {
         function create_genre_buttons(valid_genres, filtered_books, color_scale) {
             genre_buttons_container.selectAll("*").remove();
 
+            // Set dos géneros presentes no intervalo
+            let genres_present = new Set(filtered_books.map(d => d.genre));
+
             genre_buttons_container.selectAll("button")
                 .data(valid_genres)
                 .enter()
@@ -186,31 +195,27 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .text(d => d)
                 .style("padding", "10px")
                 .style("margin-right", "8px")
-                .style("cursor", "pointer")
-                .style("border", "none")
+                .style("cursor", d => genres_present.has(d) ? "pointer" : "default")
+                .style("border", d => `5px solid ${color_scale(d)}`)
                 .style("color", "black")
+                .style("opacity", d => genres_present.has(d) ? 1 : 0.5)
+                .style("pointer-events", d => genres_present.has(d) ? "auto" : "none")
                 .style('width', `${(window.innerWidth * 0.15) - padding_width}px`)
                 .style("background-color", d => color_scale(d))
-                .style("opacity", 1)
+                .style("box-sizing", "border-box")
                 .on("click", function (event, genre) {
-                    // alternate selected genre
+                    if (!genres_present.has(genre)) return;
+
                     if (selected_genres.has(genre)) {
                         selected_genres.delete(genre);
+                        d3.select(this).style("border", `5px solid ${color_scale(genre)}`);
                     } else {
                         selected_genres.add(genre);
+                        d3.select(this).style("border", `5px solid ${genre_stroke_colors[genre]}`);
                     }
 
-                    // button feedback
-                    d3.select(this).style("opacity", selected_genres.has(genre) ? 0.6 : 1);
-
-                    // update books visibility
                     svg.selectAll("rect")
-                        .style("opacity", d => {
-                            return (
-                                selected_genres.size === 0 ||
-                                selected_genres.has(d.genre)
-                            ) ? 1 : 0;   // it only shows the selected ones
-                        });
+                        .style("opacity", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? 1 : 0);
                 });
         }
 
@@ -253,7 +258,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             });
 
             let book_group = svg.append("g")
-                .attr("transform", `translate(${padding_width}, ${padding_height})`);
+                .attr("transform", `translate(${padding_width}, 0)`);
 
             book_group.selectAll('rect')
                 .data(book_data.map((d, i) => ({ ...d, id: i })))
