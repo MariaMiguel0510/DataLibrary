@@ -522,6 +522,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 current_x += w + gap;
             });
 
+            let shelf_width = document.getElementById("year_buttons_container").offsetWidth;
             let shelves_for_canvas = Math.ceil(canvas_height / shelf_height); // how many shelves needed to fill the canvas
             let shelves_for_books = Math.ceil((current_y - padding_height + shelf_height) / shelf_height); // how many shelves needed for the existing books
             let total_shelves = Math.max(shelves_for_canvas, shelves_for_books); // total number = the bigger one
@@ -554,8 +555,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .data(shelf_levels)
                 .enter()
                 .append("line")
-                .attr("x1", padding_width * 2 - 5)
-                .attr("x2", padding_width + bookshelf_width)
+                .attr("x1", padding_width * 2 - 3)
+                .attr("x2", padding_width * 2 + shelf_width)
                 .attr("y1", d => d)
                 .attr("y2", d => d)
                 .attr("stroke", "black")
