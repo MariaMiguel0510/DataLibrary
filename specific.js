@@ -2,7 +2,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label;
     let selected_genres = new Set();
 
     let current_interval_label = null;
@@ -11,13 +11,15 @@ export function initializeBooksViz(containerSelector, csvFile) {
     let latest_books_in_interval = [];
     let original_books_order_by_interval = {};
 
+    let selection_buttons_container;
+
     // INITIALIZATION
     // responsive dimensions
     padding_width = window.innerWidth * 0.05;
     padding_height = window.innerHeight * 0.09;
 
     canvas_width = containerSelector.node().clientWidth - padding_width * 2;
-    canvas_height = containerSelector.node().clientHeight - padding_height * 2.1;
+    canvas_height = containerSelector.node().clientHeight - padding_height * 2;
 
     bookshelf_width = canvas_width - (3.3 * padding_width);
     gap = 5;
@@ -42,13 +44,24 @@ export function initializeBooksViz(containerSelector, csvFile) {
     }
     `);
 
+    // create selection buttons container
+    selection_buttons_container = containerSelector
+        .append("div")
+        .attr("id", "selection_buttons_container")
+        .style("display", "flex")
+        .style("position", "absolute")
+        .style("top", (padding_height * 1) + "px")
+        .style("right", (padding_width * 0.5) + "px")
+        .style("flex-direction", "column")
+        .style("gap", gap + "px");
+
     // create sort buttons container
     sort_buttons_container = containerSelector
         .append("div")
         .attr("id", "sort_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("top", (padding_height * 2) + "px")
+        .style("top", (padding_height * 1.7) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
         .style("gap", gap + "px");
@@ -78,6 +91,18 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
         .style("gap", gap + "px");
+
+    // create books count label    
+    books_count_label = containerSelector
+        .append("div")
+        .attr("id", "books_count_label")
+        .style("position", "absolute")
+        .style("top", (padding_height * 3.5) + "px")
+        .style("right", (padding_width * 1.9) + "px")
+        .style("font-size", `${0.9}vw`)
+        .style("pointer-events", "none")
+        .style("color", "black")
+        .text(`${latest_books_in_interval.length} books`);
 
     // create genre diviser    
     d3.select('#genre_divider').remove();
@@ -171,6 +196,9 @@ export function initializeBooksViz(containerSelector, csvFile) {
         // create sort buttons
         create_sort_buttons();
 
+        // create selection buttons
+        create_selection_buttons();
+
         // create year buttons
         create_year_buttons(valid_intervals);
 
@@ -194,6 +222,94 @@ export function initializeBooksViz(containerSelector, csvFile) {
             return filtered.filter(d => valid_genres.includes(d.genre));
         }
 
+        // SELECTION BUTTONS FUNCTION  ----------------------------------------------------------
+        function create_selection_buttons() {
+            selection_buttons_container.selectAll("*").remove();
+
+            let selection_modes = [
+                { id: "genre", label: "Genre" },
+                { id: "author", label: "Author" },
+                { id: "language", label: "Language" }
+            ];
+
+            current_sort = "genre";
+
+            // Dropdown wrapper
+            let dropdown = selection_buttons_container
+                .append("div")
+                .style("position", "relative")
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`);
+
+            // Main button
+            let main_button = dropdown.append("button")
+                .attr("id", "selection_main_button")
+                .style("padding", "10px")
+                .style("font-size", `${0.9}vw`)
+                .style("width", "100%")
+                .style("cursor", "pointer")
+                .style("border", "2px solid black")
+                .style("background", "white")
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("justify-content", "space-between");
+
+            // LEFT TEXT
+            main_button.append("span")
+                .attr("id", "selection_main_label")
+                .text("Genre");
+
+            // RIGHT ARROW
+            main_button.append("span")
+                .attr("id", "selection_arrow")
+                .text("▼")
+
+            // Hidden menu
+            let menu = dropdown.append("div")
+                .attr("id", "selection_dropdown_menu")
+                .style("position", "absolute")
+                .style("top", "100%")
+                .style("left", "0")
+                .style("width", "100%")
+                .style('margin-top', '-2px')
+                .style("background", "grey")
+                .style("display", "none")
+                .style("flex-direction", "column")
+                .style("z-index", 10);
+
+            function rebuild_menu() {
+                menu.selectAll("*").remove();
+
+                menu.selectAll("button")
+                    .data(selection_modes.filter(d => d.id !== current_sort))
+                    .enter()
+                    .append("button")
+                    .text(d => d.label)
+                    .style("padding", "10px")
+                    .style("font-size", `${0.9}vw`)
+                    .style("cursor", "pointer")
+                    .style('margin-top', '-2px')
+                    .style("border", "2px solid black")
+                    .style("background", "#D7D7D7")
+                    .style("text-align", "left")
+                    .on("click", function (event, d) {
+                        // close menu
+                        menu.style("display", "none");
+
+                        // rebuild menu with the new current_sort
+                        rebuild_menu();
+                    });
+            }
+
+            // Build menu for the first time
+            rebuild_menu();
+
+            // Toggle dropdown
+            main_button.on("click", () => {
+                let visible = menu.style("display") === "flex";
+                menu.style("display", visible ? "none" : "flex");
+            });
+        }
+
         // SORT FUNCTION ----------------------------------------------------------
         function apply_sort(books, interval_label) {
             if (current_sort === "chrono") {
@@ -206,7 +322,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             }
         }
 
-        // SORT BUTTONS FUNCTION
+        // SORT BUTTONS FUNCTION --------------------------------------------------
         function create_sort_buttons() {
             sort_buttons_container.selectAll("*").remove();
 
@@ -305,7 +421,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
             });
         }
 
-
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
         function create_year_buttons(valid_intervals) {
             let selected_interval = null;
@@ -398,6 +513,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     show_interval_tooltip(this, d.label); // permanent tooltip in the selected area
                     svg.selectAll("*").remove(); // clear previous charts
                     draw_interval(d.books, d.label); // draw selected interval
+                    d3.select("#books_count_label") // update total books label
+                        .text(`${d.books.length} books`);
                 });
 
             // positioning the first position for the highlight_bar & tooltip
@@ -428,6 +545,10 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
             // keep books of the current interval for sorting
             latest_books_in_interval = [...selected_books];
+
+            // update total of books
+            d3.select("#books_count_label")
+                .text(`${latest_books_in_interval.length} books`);
 
             // apply current sort
             apply_sort(latest_books_in_interval, interval_label);
@@ -505,7 +626,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let x_positions = [];
             let y_positions = [];
             let current_x = padding_width * 2;
-            let current_y = padding_height;
+            let current_y = padding_height * 1.3;
 
             book_data.forEach(d => {
                 let w = width_scale(d.pages);
@@ -529,9 +650,9 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
             let shelf_levels = [];
             for (let i = 0; i < total_shelves; i++) {
-                shelf_levels.push(padding_height + (i * shelf_height) );
+                shelf_levels.push(padding_height * 1.3 + (i * shelf_height));
             }
-            
+
             // adjust SVG height dinamically
             let needed_height = current_y + shelf_height + padding_height;
             svg.attr("height", Math.max(canvas_height, needed_height));
@@ -560,7 +681,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr("y1", d => d)
                 .attr("y2", d => d)
                 .attr("stroke", "black")
-                .attr("stroke-width", 3);    
+                .attr("stroke-width", 3);
         }
     }
 }
