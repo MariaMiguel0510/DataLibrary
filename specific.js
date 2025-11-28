@@ -5,9 +5,11 @@ export function initializeBooksViz(containerSelector, csvFile) {
     let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container;
     let selected_genres = new Set();
 
-    let sort_buttons_container;
+    let current_interval_label = null;
+    let sort_buttons_container, original_books_order;
     let current_sort = "chrono"; // default
     let latest_books_in_interval = [];
+    let original_books_order_by_interval = {};
 
     // INITIALIZATION
     // responsive dimensions
@@ -108,6 +110,10 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     // DATA PROCESSIGN ---------------------------------------------------------------
     function process_data(data) {
+        data.forEach((d, i) => {
+            d.uid = i;   // unique ID 
+        });
+
         // get all the possible genres
         let all_genres = Array.from(new Set(data.map(d => d.genre))).sort();
 
@@ -169,7 +175,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         create_year_buttons(valid_intervals);
 
         // draw first interval by default
-        draw_interval(valid_intervals[0].books);
+        draw_interval(valid_intervals[0].books, valid_intervals[0].label);
 
 
         // FILTER BOOKS INSIDE THE INTERVAL ----------------------------------------------------------
@@ -189,15 +195,15 @@ export function initializeBooksViz(containerSelector, csvFile) {
         }
 
         // SORT FUNCTION ----------------------------------------------------------
-        function apply_sort(books) {
-            if (current_sort === "chrono")
-                books.sort((a, b) => d3.ascending(a.date, b.date));
-
-            else if (current_sort === "rating")
+        function apply_sort(books, interval_label) {
+            if (current_sort === "chrono") {
+                let map = new Map(original_books_order_by_interval[interval_label].map((uid, i) => [uid, i]));
+                books.sort((a, b) => d3.ascending(map.get(a.uid), map.get(b.uid)));
+            } else if (current_sort === "rating") {
                 books.sort((a, b) => d3.descending(a.rating, b.rating));
-
-            else if (current_sort === "pages")
+            } else if (current_sort === "pages") {
                 books.sort((a, b) => d3.descending(a.pages, b.pages));
+            }
         }
 
         // SORT BUTTONS FUNCTION
@@ -285,7 +291,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
                         // redraw the books
                         svg.selectAll("*").remove();
-                        draw_interval(latest_books_in_interval);
+                        draw_interval(latest_books_in_interval, current_interval_label);
                     });
             }
 
@@ -325,6 +331,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("position", "absolute")
                 .style("pointer-events", "none")
                 .style("padding", "4px 8px")
+                .style("font-size", `${0.9}vw`)
                 .style("background", "none")
                 .style("border", "none")
                 .style("border-radius", "5px")
@@ -376,7 +383,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
                         year_tooltip.style("opacity", 0);
                     }
                 })
-
                 .on("click", function (event, d) {
                     selected_interval = {
                         button: this,
@@ -396,7 +402,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     svg.selectAll("*").remove();
 
                     // draw selected interval
-                    draw_interval(d.books);
+                    draw_interval(d.books, d.label);
                 });
 
             // positioning the first position for the highlight_bar & tooltip
@@ -417,17 +423,24 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
 
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
-        function draw_interval(selected_books) {
-            // guardar livros do intervalo atual para sorting
+        function draw_interval(selected_books, interval_label) {
+            current_interval_label = interval_label;
+
+            // keep orginial order for the interval
+            if (!original_books_order_by_interval[interval_label]) {
+                original_books_order_by_interval[interval_label] = selected_books.map(d => d.uid);
+            }
+
+            // keep books of the current interval for sorting
             latest_books_in_interval = [...selected_books];
 
-            // aplicar ordenação atual
-            apply_sort(latest_books_in_interval);
+            // apply current sort
+            apply_sort(latest_books_in_interval, interval_label);
 
-            // criar botões de género
+            // create genre buttons
             create_genre_buttons(all_genres, latest_books_in_interval, global_color_scale);
 
-            // desenhar livros ordenados
+            // draw sorted books
             draw_books(latest_books_in_interval, global_color_scale);
         }
 
@@ -521,7 +534,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let book_group = svg.append("g");
 
             book_group.selectAll('rect')
-                .data(book_data.map((d, i) => ({ ...d, id: i })))
+                .data(book_data)
                 .enter()
                 .append('rect')
                 .attr('x', (d, i) => x_positions[i])
