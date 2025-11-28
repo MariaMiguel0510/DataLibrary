@@ -533,6 +533,23 @@ export function initializeBooksViz(containerSelector, csvFile) {
             show_interval_tooltip(first_button, first_interval.label);
         }
 
+        // UPDATE BOOKS COUNT
+        function update_visible_books_count() {
+            let visible_books;
+            if (selected_genres.size === 0) {
+                // Nenhum filtro selecionado → todos os livros do intervalo
+                visible_books = latest_books_in_interval;
+            } else {
+                // Apenas os livros cujo género está selecionado
+                visible_books = latest_books_in_interval.filter(d => selected_genres.has(d.genre));
+            }
+
+            // Atualiza o texto
+            d3.select("#books_count_label")
+                .text(`${visible_books.length} books`);
+        }
+
+
 
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
         function draw_interval(selected_books, interval_label) {
@@ -547,8 +564,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             latest_books_in_interval = [...selected_books];
 
             // update total of books
-            d3.select("#books_count_label")
-                .text(`${latest_books_in_interval.length} books`);
+            update_visible_books_count();
 
             // apply current sort
             apply_sort(latest_books_in_interval, interval_label);
@@ -602,6 +618,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
                     svg.selectAll("rect")
                         .style("opacity", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? 1 : 0);
+
+                    update_visible_books_count();    
                 });
         }
 
