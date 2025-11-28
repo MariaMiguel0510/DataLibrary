@@ -393,16 +393,11 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     highlight_bar
                         .style("opacity", 1)
                         .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
-                        .style("top", (this.offsetTop - 2) + "px");
+                        .style("top", (this.offsetTop - 3) + "px");
 
-                    // permanent tooltip in the selected area
-                    show_interval_tooltip(this, d.label);
-
-                    // clear previous charts
-                    svg.selectAll("*").remove();
-
-                    // draw selected interval
-                    draw_interval(d.books, d.label);
+                    show_interval_tooltip(this, d.label); // permanent tooltip in the selected area
+                    svg.selectAll("*").remove(); // clear previous charts
+                    draw_interval(d.books, d.label); // draw selected interval
                 });
 
             // positioning the first position for the highlight_bar & tooltip
@@ -416,7 +411,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
             highlight_bar
                 .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
-                .style("top", (first_button.offsetTop - 2) + "px");
+                .style("top", (first_button.offsetTop - 3) + "px");
 
             show_interval_tooltip(first_button, first_interval.label);
         }
@@ -509,8 +504,10 @@ export function initializeBooksViz(containerSelector, csvFile) {
             // calculate positions
             let x_positions = [];
             let y_positions = [];
+            let shelf_levels = [];
             let current_x = padding_width * 2;
             let current_y = padding_height;
+            shelf_levels.push(current_y); // first shelf
 
             book_data.forEach(d => {
                 let w = width_scale(d.pages);
@@ -519,6 +516,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 if (current_x + w > padding_width + bookshelf_width) {
                     current_x = padding_width * 2;
                     current_y += shelf_height;
+                    shelf_levels.push(current_y); // new shelf
                 }
 
                 x_positions.push(current_x);
@@ -542,6 +540,20 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr('width', d => width_scale(d.pages))
                 .attr('height', d => height_scale(Math.floor(d.rating)))
                 .attr('fill', d => color_scale(d.genre));
+
+            // DRAW SHELVES -------------------------------------------------------
+            svg.append("g")
+                .attr("id", "shelves_group")
+                .selectAll("line")
+                .data(shelf_levels)
+                .enter()
+                .append("line")
+                .attr("x1", padding_width * 2)
+                .attr("x2", padding_width + bookshelf_width)
+                .attr("y1", d => d)
+                .attr("y2", d => d)
+                .attr("stroke", "black")
+                .attr("stroke-width", 2);    
         }
     }
 }
