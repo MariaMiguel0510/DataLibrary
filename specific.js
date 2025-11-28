@@ -554,7 +554,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .data(shelf_levels)
                 .enter()
                 .append("line")
-                .attr("x1", padding_width * 2)
+                .attr("x1", padding_width * 2 - 5)
                 .attr("x2", padding_width + bookshelf_width)
                 .attr("y1", d => d)
                 .attr("y2", d => d)
