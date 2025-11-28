@@ -5,6 +5,9 @@ export function initializeBooksViz(containerSelector, csvFile) {
     let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container;
     let selected_genres = new Set();
 
+    let sort_buttons_container;
+    let current_sort = "chrono"; // default
+    let latest_books_in_interval = [];
 
     // INITIALIZATION
     // responsive dimensions
@@ -36,6 +39,17 @@ export function initializeBooksViz(containerSelector, csvFile) {
         display: none;
     }
     `);
+
+    // create sort buttons container
+    sort_buttons_container = containerSelector
+        .append("div")
+        .attr("id", "sort_buttons_container")
+        .style("display", "flex")
+        .style("position", "absolute")
+        .style("top", (padding_height) + "px")
+        .style("right", (padding_width * 0.5) + "px")
+        .style("flex-direction", "column")
+        .style("gap", gap + "px");
 
     // new svg element
     svg = books_container
@@ -74,8 +88,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style('width', '2px')
         .style('background', 'black')
         .style('right', ((canvas_width * 0.17) + (padding_width * 0.5)) + 'px');
-
-    //`${(window.innerWidth * 0.17) - padding_width}px`
 
     books = csvFile;
 
@@ -119,12 +131,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
             .domain(all_genres)
             .range(all_genres.map(g => genre_colors[g]));
 
-        let global_genre_counts = d3.rollup(data, v => v.length, d => d.genre);
-
-        let valid_global_genres = Array.from(global_genre_counts)
-            .filter(([g, count]) => count >= 5)
-            .map(([g]) => g);
-
         // create intervals of 2 years
         function interval(year) {
             year = +year;
@@ -156,6 +162,9 @@ export function initializeBooksViz(containerSelector, csvFile) {
             return d3.ascending(startA, startB);
         });
 
+        // create sort buttons
+        create_sort_buttons();
+
         // create year buttons
         create_year_buttons(valid_intervals);
 
@@ -177,6 +186,56 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .map(([g]) => g);
 
             return filtered.filter(d => valid_genres.includes(d.genre));
+        }
+
+        // SORT FUNCTION ----------------------------------------------------------
+        function apply_sort(books) {
+            if (current_sort === "chrono")
+                books.sort((a, b) => d3.ascending(a.date, b.date));
+
+            else if (current_sort === "rating")
+                books.sort((a, b) => d3.descending(a.rating, b.rating));
+
+            else if (current_sort === "pages")
+                books.sort((a, b) => d3.descending(a.pages, b.pages));
+        }
+
+        // SORT BUTTONS FUNCTION
+        function create_sort_buttons() {
+            let sort_modes = [
+                { id: "chrono", label: "Chronologically" },
+                { id: "rating", label: "Rating" },
+                { id: "pages", label: "Pages" }
+            ];
+
+            current_sort = "chrono";
+
+            sort_buttons_container.selectAll("button")
+                .data(sort_modes)
+                .enter()
+                .append("button")
+                .text(d => d.label)
+                .style("padding", "10px")
+                .style("font-size", `${0.9}vw`)
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("justify-content", "flex-start")
+                .style("text-align", "left")
+                .style("padding-left", "15px")
+                .style("cursor", "pointer")
+                .style("border", "2px solid black")
+                .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
+                .style("background", d => d.id === current_sort ? "#ddd" : "white")
+                .on("click", function (event, d) {
+                    current_sort = d.id;
+
+                    sort_buttons_container.selectAll("button")
+                        .style("background", b => b.id === current_sort ? "#ddd" : "white");
+
+                    svg.selectAll("*").remove();
+                    draw_interval(latest_books_in_interval);
+                });
         }
 
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
@@ -297,15 +356,21 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
         function draw_interval(selected_books) {
-            // create genre buttons
-            create_genre_buttons(valid_global_genres, selected_books, global_color_scale);
+            // guardar livros do intervalo atual para sorting
+            latest_books_in_interval = [...selected_books];
 
-            // draw books
-            draw_books(selected_books, global_color_scale);
+            // aplicar ordenação atual
+            apply_sort(latest_books_in_interval);
+
+            // criar botões de género
+            create_genre_buttons(all_genres, latest_books_in_interval, global_color_scale);
+
+            // desenhar livros ordenados
+            draw_books(latest_books_in_interval, global_color_scale);
         }
 
 
-        // DRAW THE GENRE BUTTONS ---------------------------------------------------------------
+        // CREATE THE GENRE BUTTONS ---------------------------------------------------------------
         function create_genre_buttons(valid_genres, filtered_books, color_scale) {
             genre_buttons_container.selectAll("*").remove();
 
