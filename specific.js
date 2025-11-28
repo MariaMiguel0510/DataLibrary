@@ -46,7 +46,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .attr("id", "sort_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("top", (padding_height) + "px")
+        .style("top", (padding_height * 2) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
         .style("gap", gap + "px");
@@ -202,6 +202,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // SORT BUTTONS FUNCTION
         function create_sort_buttons() {
+            sort_buttons_container.selectAll("*").remove();
+
             let sort_modes = [
                 { id: "chrono", label: "Chronologically" },
                 { id: "rating", label: "Rating" },
@@ -210,33 +212,93 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
             current_sort = "chrono";
 
-            sort_buttons_container.selectAll("button")
-                .data(sort_modes)
-                .enter()
-                .append("button")
-                .text(d => d.label)
+            // Dropdown wrapper
+            let dropdown = sort_buttons_container
+                .append("div")
+                .style("position", "relative")
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`);
+
+            // Main button
+            let main_button = dropdown.append("button")
+                .attr("id", "sort_main_button")
                 .style("padding", "10px")
                 .style("font-size", `${0.9}vw`)
-                .style("display", "flex")
-                .style("align-items", "center")
-                .style("justify-content", "flex-start")
-                .style("text-align", "left")
-                .style("padding-left", "15px")
+                .style("width", "100%")
                 .style("cursor", "pointer")
                 .style("border", "2px solid black")
-                .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
-                .style('height', `${(window.innerHeight * 0.05)}px`)
-                .style("background", d => d.id === current_sort ? "#ddd" : "white")
-                .on("click", function (event, d) {
-                    current_sort = d.id;
+                .style("background", "white")
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("justify-content", "space-between");
 
-                    sort_buttons_container.selectAll("button")
-                        .style("background", b => b.id === current_sort ? "#ddd" : "white");
+            // LEFT TEXT
+            main_button.append("span")
+                .attr("id", "sort_main_label")
+                .text("Chronologically");
 
-                    svg.selectAll("*").remove();
-                    draw_interval(latest_books_in_interval);
-                });
+            // RIGHT ARROW
+            main_button.append("span")
+                .attr("id", "sort_arrow")
+                .text("▼")
+
+            // Hidden menu
+            let menu = dropdown.append("div")
+                .attr("id", "sort_dropdown_menu")
+                .style("position", "absolute")
+                .style("top", "100%")
+                .style("left", "0")
+                .style("width", "100%")
+                .style('margin-top', '-2px')
+                .style("background", "grey")
+                .style("display", "none")
+                .style("flex-direction", "column")
+                .style("z-index", 10);
+
+            function rebuild_menu() {
+                menu.selectAll("*").remove();
+
+                menu.selectAll("button")
+                    .data(sort_modes.filter(d => d.id !== current_sort))
+                    .enter()
+                    .append("button")
+                    .text(d => d.label)
+                    .style("padding", "10px")
+                    .style("font-size", `${0.9}vw`)
+                    .style("cursor", "pointer")
+                    .style('margin-top', '-2px')
+                    .style("border", "2px solid black")
+                    .style("background", "#D7D7D7")
+                    .style("text-align", "left")
+                    .on("click", function (event, d) {
+
+                        // update current sort
+                        current_sort = d.id;
+
+                        // update text of main button
+                        main_button.select("#sort_main_label").text(d.label);
+
+                        // close menu
+                        menu.style("display", "none");
+
+                        // rebuild menu with the new current_sort
+                        rebuild_menu();
+
+                        // redraw the books
+                        svg.selectAll("*").remove();
+                        draw_interval(latest_books_in_interval);
+                    });
+            }
+
+            // Build menu for the first time
+            rebuild_menu();
+
+            // Toggle dropdown
+            main_button.on("click", () => {
+                let visible = menu.style("display") === "flex";
+                menu.style("display", visible ? "none" : "flex");
+            });
         }
+
 
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
         function create_year_buttons(valid_intervals) {
