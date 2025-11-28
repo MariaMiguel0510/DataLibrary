@@ -181,6 +181,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
         function create_year_buttons(valid_intervals) {
+            // bar to show the selected interval
             highlight_bar = year_buttons_container
                 .append("div")
                 .attr("id", "year_highlight")
@@ -190,10 +191,11 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("border", "2px solid black")
                 .style("pointer-events", "none")
                 .style("background", "white")
-                .style("opacity", 0)
+                .style("opacity", 1)
                 .style("z-index", 9999)
                 .style("transition", "left 0.15s, top 0.15s, opacity 0.15s");
 
+            // interval text
             year_tooltip = containerSelector
                 .append("div")
                 .attr("id", "year_tooltip")
@@ -203,7 +205,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("background", "none")
                 .style("border", "none")
                 .style("border-radius", "5px")
-                .style("opacity", 0)
+                .style("opacity", 1)
                 .style("transition", "opacity 0.15s");
 
             // calculate number of books per interval
@@ -222,7 +224,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr("class", "year-button")
                 .html("&nbsp;") // button keeps its size but without text
                 .style('margin-right', '-2px')
-                .style('padding', `${canvas_width*0.003}px`)
+                .style("border", "2px solid black")
+                .style('padding', `${canvas_width * 0.003}px`)
                 .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
                 .style("background-color", d => gray_scale(d.books.length))
                 .style("cursor", "pointer")
@@ -234,20 +237,17 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     year_tooltip
                         .html(d.label)
                         .style("opacity", 1)
-                        .style("left", (rect.left - container_rect.left + (rect.width/2)) + "px")
+                        .style("left", (rect.left - container_rect.left + (rect.width / 2)) + "px")
                         .style("top", (rect.top - container_rect.top - 30) + "px")
                         .style("transform", "translateX(-50%)");
                 })
                 .on("mouseout", () => year_tooltip.style("opacity", 0))
 
                 .on("click", function (event, d) {
-
-                    const btn = this;
-
+                    let button = this;
                     highlight_bar
-                        .style("opacity", 1)
-                        .style("left", (btn.offsetLeft + btn.offsetWidth/2 - 3) + "px")
-                        .style("top", (btn.offsetTop - 2) + "px");
+                        .style("left", (button.offsetLeft + button.offsetWidth / 2 - 4) + "px")
+                        .style("top", (button.offsetTop - 2) + "px");
 
                     // clear previous charts
                     svg.selectAll("*").remove();
@@ -255,6 +255,12 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     // draw selected interval
                     draw_interval(d.books);
                 });
+
+            // positioning the first position for the highlight_bar
+            let first_button = year_buttons_container.select("button").node();
+            highlight_bar
+                .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
+                .style("top", (first_button.offsetTop - 2) + "px");
         }
 
 
@@ -281,7 +287,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .append("button")
                 .text(d => d)
                 .style("padding", "10px")
-                .style("margin-right", "8px")
                 .style("font-size", `${0.9}vw`)
                 .style("display", "flex")
                 .style("align-items", "center")
