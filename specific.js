@@ -181,6 +181,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
         function create_year_buttons(valid_intervals) {
+            let selected_interval = null;
+
             // bar to show the selected interval
             highlight_bar = year_buttons_container
                 .append("div")
@@ -208,6 +210,19 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("opacity", 1)
                 .style("transition", "opacity 0.15s");
 
+            // show tooltip above the button
+            function show_interval_tooltip(button, label) {
+                let rect = button.getBoundingClientRect();
+                let container_rect = containerSelector.node().getBoundingClientRect();
+
+                year_tooltip
+                    .html(label)
+                    .style("opacity", 1)
+                    .style("left", (rect.left - container_rect.left + rect.width / 2) + "px")
+                    .style("top", (rect.top - container_rect.top - 30) + "px")
+                    .style("transform", "translateX(-50%)");
+            }
+
             // calculate number of books per interval
             let interval_counts = valid_intervals.map(d => d.books.length);
 
@@ -229,25 +244,32 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
                 .style("background-color", d => gray_scale(d.books.length))
                 .style("cursor", "pointer")
+                // hover
                 .on("mouseover", function (event, d) {
-                    let button = event.target;
-                    let rect = button.getBoundingClientRect();
-                    let container_rect = containerSelector.node().getBoundingClientRect();
-
-                    year_tooltip
-                        .html(d.label)
-                        .style("opacity", 1)
-                        .style("left", (rect.left - container_rect.left + (rect.width / 2)) + "px")
-                        .style("top", (rect.top - container_rect.top - 30) + "px")
-                        .style("transform", "translateX(-50%)");
+                    show_interval_tooltip(this, d.label);
                 })
-                .on("mouseout", () => year_tooltip.style("opacity", 0))
+                .on("mouseout", function () {
+                    if (selected_interval) {
+                        show_interval_tooltip(selected_interval.button, selected_interval.label);
+                    } else {
+                        year_tooltip.style("opacity", 0);
+                    }
+                })
 
                 .on("click", function (event, d) {
-                    let button = this;
+                    selected_interval = {
+                        button: this,
+                        label: d.label
+                    };
+
+                    // move highlight bar for selection
                     highlight_bar
-                        .style("left", (button.offsetLeft + button.offsetWidth / 2 - 4) + "px")
-                        .style("top", (button.offsetTop - 2) + "px");
+                        .style("opacity", 1)
+                        .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
+                        .style("top", (this.offsetTop - 2) + "px");
+
+                    // permanent tooltip in the selected area
+                    show_interval_tooltip(this, d.label);
 
                     // clear previous charts
                     svg.selectAll("*").remove();
@@ -256,11 +278,20 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     draw_interval(d.books);
                 });
 
-            // positioning the first position for the highlight_bar
+            // positioning the first position for the highlight_bar & tooltip
             let first_button = year_buttons_container.select("button").node();
+            let first_interval = valid_intervals[0];
+
+            selected_interval = {
+                button: first_button,
+                label: first_interval.label
+            };
+
             highlight_bar
                 .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
                 .style("top", (first_button.offsetTop - 2) + "px");
+
+            show_interval_tooltip(first_button, first_interval.label);
         }
 
 
