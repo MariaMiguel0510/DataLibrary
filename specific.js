@@ -504,10 +504,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
             // calculate positions
             let x_positions = [];
             let y_positions = [];
-            let shelf_levels = [];
             let current_x = padding_width * 2;
             let current_y = padding_height;
-            shelf_levels.push(current_y); // first shelf
 
             book_data.forEach(d => {
                 let w = width_scale(d.pages);
@@ -516,7 +514,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 if (current_x + w > padding_width + bookshelf_width) {
                     current_x = padding_width * 2;
                     current_y += shelf_height;
-                    shelf_levels.push(current_y); // new shelf
                 }
 
                 x_positions.push(current_x);
@@ -525,6 +522,15 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 current_x += w + gap;
             });
 
+            let shelves_for_canvas = Math.ceil(canvas_height / shelf_height); // how many shelves needed to fill the canvas
+            let shelves_for_books = Math.ceil((current_y - padding_height + shelf_height) / shelf_height); // how many shelves needed for the existing books
+            let total_shelves = Math.max(shelves_for_canvas, shelves_for_books); // total number = the bigger one
+
+            let shelf_levels = [];
+            for (let i = 0; i < total_shelves; i++) {
+                shelf_levels.push(padding_height + (i * shelf_height) );
+            }
+            
             // adjust SVG height dinamically
             let needed_height = current_y + shelf_height + padding_height;
             svg.attr("height", Math.max(canvas_height, needed_height));
@@ -553,7 +559,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr("y1", d => d)
                 .attr("y2", d => d)
                 .attr("stroke", "black")
-                .attr("stroke-width", 2);    
+                .attr("stroke-width", 3);    
         }
     }
 }
