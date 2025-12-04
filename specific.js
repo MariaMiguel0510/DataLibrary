@@ -2,7 +2,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container, scrollbar_container, thumb;
     let selected_genres = new Set();
 
     let current_interval_label = null;
@@ -11,7 +11,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
     let latest_books_in_interval = [];
     let original_books_order_by_interval = {};
 
-    let selection_buttons_container;
 
     // INITIALIZATION
     // responsive dimensions
@@ -33,6 +32,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("position", "relative")
         .style("width", canvas_width + "px")
         .style("height", canvas_height + "px")
+        .style("overflow-x", "hidden")
         .style("overflow-y", "auto")
         .style("scrollbar-width", "none") // Firefox
         .style("-ms-overflow-style", "none"); // IE/Edge antigo
@@ -41,8 +41,46 @@ export function initializeBooksViz(containerSelector, csvFile) {
     books_container.append("style").text(`
     #books_container::-webkit-scrollbar {
         display: none;
+    }`);
+
+    // create scrollbar container
+    scrollbar_container = containerSelector
+        .append("div")
+        .attr("id", "custom_scrollbar")
+        .style("position", "absolute")
+        .style("top", padding_height - padding_height*0.3 + "px") 
+        .style("right", (padding_width * 4) + "px") 
+        .style("width", "4px")
+        .style("height", canvas_height - padding_height*0.5 + "px")
+        .style("background", "#D7D7D7");
+
+    // scroll bar    
+    thumb = scrollbar_container
+        .append("div")
+        .style("width", "100%")
+        .style("height", "50px") // tamanho inicial, vai atualizar depois
+        .style("background", "black") // cor da barra
+        .style("position", "relative");
+
+    books_container.on("scroll", function () {
+        let scroll_top = books_container.node().scrollTop;
+        let scroll_height = books_container.node().scrollHeight - books_container.node().clientHeight;
+        let thumb_height = parseFloat(thumb.style("height")); // height do thumb
+        let max_top = scrollbar_container.node().clientHeight - thumb_height;
+        thumb.style("top", (scroll_top / scroll_height * max_top) + "px");
+    });
+
+    // update scrollbar's visibility
+    function update_scrollbar_visibility() {
+        let real_height = parseFloat(books_container.node().dataset.realHeight);
+        let container_height = books_container.node().clientHeight;
+
+        if (real_height > container_height) {
+            scrollbar_container.style("display", "block");
+        } else {
+            scrollbar_container.style("display", "none");
+        }
     }
-    `);
 
     // create selection buttons container
     selection_buttons_container = containerSelector
@@ -636,7 +674,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     svg.selectAll("rect")
                         .style("opacity", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? 1 : 0);
 
-                    update_visible_books_count();    
+                    update_visible_books_count();
                 });
         }
 
@@ -654,7 +692,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 else if (pages <= 400) return 17;
                 else if (pages <= 600) return 22;
                 else if (pages <= 800) return 27;
-                else return 32; // more than 800
+                else return 32;
             }
 
             // calculate positions
@@ -666,7 +704,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             book_data.forEach(d => {
                 let w = width_scale(d.pages);
 
-                // if over the limit, break the line.
+                // new line if overflow
                 if (current_x + w > padding_width + bookshelf_width) {
                     current_x = padding_width * 2;
                     current_y += shelf_height;
@@ -678,28 +716,23 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 current_x += w + gap;
             });
 
-            let shelf_width = document.getElementById("year_buttons_container").offsetWidth;
-            let shelves_for_canvas = Math.ceil(canvas_height / shelf_height); // how many shelves needed to fill the canvas
-            let shelves_for_books = Math.ceil((current_y - padding_height + shelf_height) / shelf_height); // how many shelves needed for the existing books
-            let total_shelves = Math.max(shelves_for_canvas, shelves_for_books); // total number = the bigger one
+            let real_height = current_y + shelf_height + padding_height; // real height based only on the books
+            books_container.node().dataset.realHeight = real_height; // save the real height on the update_scrollbar_visibility function
 
-            let shelf_levels = [];
-            for (let i = 0; i < total_shelves; i++) {
-                shelf_levels.push(padding_height * 1.3 + (i * shelf_height));
-            }
+            // if the books exceed the visible space -> the SVG should have actual height
+            // otherwise, it's the same size as the canvas (doesn't create extra scrolling)
+            let svg_height = real_height > canvas_height ? real_height : canvas_height;
+            svg.attr("height", svg_height); // ajust svg height
+            update_scrollbar_visibility();
 
-            // adjust SVG height dinamically
-            let needed_height = current_y + shelf_height + padding_height;
-            svg.attr("height", Math.max(canvas_height, needed_height));
-
-            // Tooltip - function to break text
+            // tooltip wrap
             function wrap_text(text, max_chars) {
                 let words = text.split(" "); // divide original text into words separated by spaces
                 let lines = []; // array to keep each final line
                 let current_line = "";
 
                 words.forEach(word => {
-                    if ((current_line + word).length <= max_chars) {  // verify if the word still fits within the current line
+                    if ((current_line + word).length <= max_chars) { // verify if the word still fits within the current line
                         current_line += word + " "; // add the word to current line
                     } else {
                         lines.push(current_line.trim()); // send the current line to the array
@@ -707,10 +740,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     }
                 });
 
-                // after the loop, if there's still text on the last line, add to the array
-                if (current_line.length > 0) {
-                    lines.push(current_line.trim());
-                }
+                if (current_line.length > 0) lines.push(current_line.trim()); // after the loop, if there's still text on the last line, add to the array
 
                 // join all lines
                 return lines.join("<br>");
@@ -741,7 +771,18 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     book_tooltip.style("opacity", 0);
                 });
 
-            // DRAW SHELVES -------------------------------------------------------
+            // draw shelves only for visual purposes
+            let shelf_levels = [];
+            let shelves_for_books = Math.ceil((current_y - padding_height) / shelf_height); // how many shelves needed for the existing books
+            let shelves_for_canvas = Math.ceil(canvas_height / shelf_height); // how many shelves needed to fill the canvas
+            let total_shelves = Math.max(shelves_for_canvas, shelves_for_books); // total number = the bigger one
+
+            for (let i = 0; i < total_shelves; i++) {
+                shelf_levels.push(padding_height * 1.3 + (i * shelf_height));
+            }
+
+            let shelf_width = document.getElementById("year_buttons_container").offsetWidth; 
+
             svg.append("g")
                 .attr("id", "shelves_group")
                 .selectAll("line")
@@ -755,5 +796,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr("stroke", "black")
                 .attr("stroke-width", 3);
         }
+
     }
 }
