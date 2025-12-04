@@ -90,6 +90,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("position", "absolute")
         .style("top", `${canvas_height * 0.1}px`)
         .style("right", (padding_width * 0.5) + "px")
+        .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
+        .style('height', `${(window.innerHeight * 0.05)}px`)
         .style("flex-direction", "column")
         .style("gap", gap + "px");
 
@@ -294,14 +296,16 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let dropdown = selection_buttons_container
                 .append("div")
                 .style("position", "relative")
-                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`);
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`);
 
             // Main button
             let main_button = dropdown.append("button")
                 .attr("id", "selection_main_button")
                 .style("padding", "10px")
                 .style("font-size", `${0.9}vw`)
-                .style("width", "100%")
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
                 .style("cursor", "pointer")
                 .style("border", "2px solid black")
                 .style("background", "white")
@@ -325,7 +329,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("position", "absolute")
                 .style("top", "100%")
                 .style("left", "0")
-                .style("width", "100%")
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
                 .style('margin-top', '-2px')
                 .style("background", "grey")
                 .style("display", "none")
@@ -343,8 +348,10 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     .style("padding", "10px")
                     .style("font-size", `${0.9}vw`)
                     .style("font-family", "Poppins, sans-serif")
+                    .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                    .style('height', `${(window.innerHeight * 0.05)}px`)
                     .style("cursor", "pointer")
-                    .style('margin-top', '-2px')
+                    .style('margin-top', '-1.5px')
                     .style("border", "2px solid black")
                     .style("background", "#D7D7D7")
                     .style("text-align", "left")
@@ -395,15 +402,13 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let dropdown = sort_buttons_container
                 .append("div")
                 .style("position", "relative")
-                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
-                .style('height', `${(window.innerHeight * 0.05)}px`)
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`);
 
             // Main button
             let main_button = dropdown.append("button")
                 .attr("id", "sort_main_button")
                 .style("padding", "10px")
                 .style("font-size", `${0.9}vw`)
-                .style("font-family", "Poppins, sans-serif")
                 .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
                 .style('height', `${(window.innerHeight * 0.05)}px`)
                 .style("cursor", "pointer")
@@ -420,7 +425,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
             // RIGHT ARROW
             main_button.append("span")
-                .attr("id", "sort_arrow")
+                .attr("id", "selection_arrow")
                 .text("▼")
 
             // Hidden menu
@@ -447,28 +452,20 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     .text(d => d.label)
                     .style("padding", "10px")
                     .style("font-size", `${0.9}vw`)
+                    .style("font-family", "Poppins, sans-serif")
+                    .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                    .style('height', `${(window.innerHeight * 0.05)}px`)
                     .style("cursor", "pointer")
-                    .style('margin-top', '-2px')
+                    .style('margin-top', '-1.5px')
                     .style("border", "2px solid black")
                     .style("background", "#D7D7D7")
                     .style("text-align", "left")
                     .on("click", function (event, d) {
-
-                        // update current sort
-                        current_sort = d.id;
-
-                        // update text of main button
-                        main_button.select("#sort_main_label").text(d.label);
-
                         // close menu
                         menu.style("display", "none");
 
                         // rebuild menu with the new current_sort
                         rebuild_menu();
-
-                        // redraw the books
-                        svg.selectAll("*").remove();
-                        draw_interval(latest_books_in_interval, current_interval_label);
                     });
             }
 
