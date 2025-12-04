@@ -767,11 +767,17 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr('height', d => height_scale(Math.floor(d.rating)))
                 .attr('fill', d => color_scale(d.genre))
                 .on("mouseover", function (event, d) {
+                    const opacity = +d3.select(this).style("opacity");
+                    if (opacity === 0) return; // se não está visível, não faz nada
+
                     book_tooltip
                         .style("opacity", 1)
                         .html(`${wrap_text(d.name, 30)}`);
                 })
                 .on("mousemove", function (event) {
+                    const opacity = +d3.select(this).style("opacity");
+                    if (opacity === 0) return;
+
                     book_tooltip
                         .style("left", (event.pageX + 15) + "px")
                         .style("top", (event.pageY - 20) + "px");
