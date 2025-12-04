@@ -2,7 +2,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip;
     let selected_genres = new Set();
 
     let current_interval_label = null;
@@ -71,6 +71,20 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .append('svg')
         .attr('width', canvas_width)
         .attr('height', canvas_height);
+
+    // tooltip for books
+    book_tooltip = containerSelector
+        .append("div")
+        .attr("id", "book_tooltip")
+        .style("position", "absolute")
+        .style("pointer-events", "none")
+        .style("padding", "6px 10px")
+        .style("font-size", `${0.9}vw`)
+        .style("font-family", "Poppins, sans-serif")
+        .style("background", "white")
+        .style("border", "2px solid black")
+        .style("opacity", 0)
+        .style("z-index", 99999);
 
     // create years container
     d3.select('#year_buttons_container').remove();
@@ -452,12 +466,11 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("font-family", "Poppins, sans-serif")
                 .style("background", "none")
                 .style("border", "none")
-                .style("border-radius", "5px")
                 .style("opacity", 1)
                 .style("transition", "opacity 0.15s");
 
             // show tooltip above the button
-            function show_interval_tooltip(button, label) {
+            function show_year_tooltip(button, label) {
                 let rect = button.getBoundingClientRect();
                 let container_rect = containerSelector.node().getBoundingClientRect();
 
@@ -492,11 +505,11 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("cursor", "pointer")
                 // hover
                 .on("mouseover", function (event, d) {
-                    show_interval_tooltip(this, d.label);
+                    show_year_tooltip(this, d.label);
                 })
                 .on("mouseout", function () {
                     if (selected_interval) {
-                        show_interval_tooltip(selected_interval.button, selected_interval.label);
+                        show_year_tooltip(selected_interval.button, selected_interval.label);
                     } else {
                         year_tooltip.style("opacity", 0);
                     }
@@ -513,7 +526,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                         .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
                         .style("top", (this.offsetTop - 3) + "px");
 
-                    show_interval_tooltip(this, d.label); // permanent tooltip in the selected area
+                    show_year_tooltip(this, d.label); // permanent tooltip in the selected area
                     svg.selectAll("*").remove(); // clear previous charts
                     draw_interval(d.books, d.label); // draw selected interval
                     d3.select("#books_count_label") // update total books label
@@ -533,7 +546,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
                 .style("top", (first_button.offsetTop - 3) + "px");
 
-            show_interval_tooltip(first_button, first_interval.label);
+            show_year_tooltip(first_button, first_interval.label);
         }
 
         // UPDATE BOOKS COUNT
@@ -679,6 +692,30 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let needed_height = current_y + shelf_height + padding_height;
             svg.attr("height", Math.max(canvas_height, needed_height));
 
+            // Tooltip - function to break text
+            function wrap_text(text, max_chars) {
+                let words = text.split(" "); // divide original text into words separated by spaces
+                let lines = []; // array to keep each final line
+                let current_line = "";
+
+                words.forEach(word => {
+                    if ((current_line + word).length <= max_chars) {  // verify if the word still fits within the current line
+                        current_line += word + " "; // add the word to current line
+                    } else {
+                        lines.push(current_line.trim()); // send the current line to the array
+                        current_line = word + " "; // start a new line with the current word
+                    }
+                });
+
+                // after the loop, if there's still text on the last line, add to the array
+                if (current_line.length > 0) {
+                    lines.push(current_line.trim());
+                }
+
+                // join all lines
+                return lines.join("<br>");
+            }
+
             let book_group = svg.append("g");
 
             book_group.selectAll('rect')
@@ -689,7 +726,20 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .attr('y', (d, i) => y_positions[i] - height_scale(Math.floor(d.rating)))
                 .attr('width', d => width_scale(d.pages))
                 .attr('height', d => height_scale(Math.floor(d.rating)))
-                .attr('fill', d => color_scale(d.genre));
+                .attr('fill', d => color_scale(d.genre))
+                .on("mouseover", function (event, d) {
+                    book_tooltip
+                        .style("opacity", 1)
+                        .html(`${wrap_text(d.name, 30)}`);
+                })
+                .on("mousemove", function (event) {
+                    book_tooltip
+                        .style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 20) + "px");
+                })
+                .on("mouseout", function () {
+                    book_tooltip.style("opacity", 0);
+                });
 
             // DRAW SHELVES -------------------------------------------------------
             svg.append("g")
