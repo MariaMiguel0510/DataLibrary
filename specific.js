@@ -88,7 +88,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .attr("id", "selection_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("top", (padding_height * 1) + "px")
+        .style("top", `${canvas_height * 0.1}px`)
+        //.style("top", (padding_height * 1) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
         .style("gap", gap + "px");
@@ -99,7 +100,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .attr("id", "sort_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("top", (padding_height * 1.7) + "px")
+        .style("top", `${canvas_height * 0.18}px`)
+        //.style("top", (padding_height * 1.7) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
         .style("gap", gap + "px");
@@ -149,7 +151,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .append("div")
         .attr("id", "books_count_label")
         .style("position", "absolute")
-        .style("top", (padding_height * 3.5) + "px")
+        .style("top", `${canvas_height * 0.38}px`)
+        //.style("top", (padding_height * 3.5) + "px")
         .style("right", (padding_width * 1.9) + "px")
         .style("font-size", `${0.9}vw`)
         .style("pointer-events", "none")
@@ -281,6 +284,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let selection_modes = [
                 { id: "genre", label: "Genre" },
                 { id: "author", label: "Author" },
+                { id: "publisher", label: "Publisher" },
                 { id: "language", label: "Language" }
             ];
 
@@ -701,11 +705,14 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let current_x = padding_width * 2;
             let current_y = padding_height * 1.3;
 
+            let shelf_right_limit = padding_width + bookshelf_width - padding_width*0.1;
+
+
             book_data.forEach(d => {
                 let w = width_scale(d.pages);
 
                 // new line if overflow
-                if (current_x + w > padding_width + bookshelf_width) {
+                if (current_x + w > shelf_right_limit) {
                     current_x = padding_width * 2;
                     current_y += shelf_height;
                 }
@@ -721,8 +728,10 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
             // if the books exceed the visible space -> the SVG should have actual height
             // otherwise, it's the same size as the canvas (doesn't create extra scrolling)
-            let svg_height = real_height > canvas_height ? real_height : canvas_height;
-            svg.attr("height", svg_height); // ajust svg height
+            let last_shelf_y = current_y; // posição da última shelf usada pelos livros
+            let svg_height = Math.max(last_shelf_y + shelf_height, canvas_height);
+            svg.attr("height", svg_height);
+
             update_scrollbar_visibility();
 
             // tooltip wrap
