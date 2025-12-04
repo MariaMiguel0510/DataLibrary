@@ -51,7 +51,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("top", padding_height - padding_height*0.3 + "px") 
         .style("right", (padding_width * 4) + "px") 
         .style("width", "4px")
-        .style("height", canvas_height - padding_height*0.5 + "px")
+        .style("height", canvas_height - padding_height*0.67 + "px")
         .style("background", "#D7D7D7");
 
     // scroll bar    
