@@ -153,7 +153,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .append("div")
         .attr("id", "books_count_label")
         .style("position", "absolute")
-        .style("top", `${canvas_height * 0.38}px`)
+        .style("bottom", (padding_height * 7.2) + "px")
         //.style("top", (padding_height * 3.5) + "px")
         .style("right", (padding_width * 1.9) + "px")
         .style("font-size", `${0.9}vw`)
