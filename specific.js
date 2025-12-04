@@ -89,7 +89,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("display", "flex")
         .style("position", "absolute")
         .style("top", `${canvas_height * 0.1}px`)
-        //.style("top", (padding_height * 1) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
         .style("gap", gap + "px");
@@ -100,9 +99,10 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .attr("id", "sort_buttons_container")
         .style("display", "flex")
         .style("position", "absolute")
-        .style("top", `${canvas_height * 0.18}px`)
-        //.style("top", (padding_height * 1.7) + "px")
+        .style("bottom", (padding_height*9) + "px")
         .style("right", (padding_width * 0.5) + "px")
+        .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
+        .style('height', `${(window.innerHeight * 0.05)}px`)
         .style("flex-direction", "column")
         .style("gap", gap + "px");
 
@@ -395,7 +395,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
             let dropdown = sort_buttons_container
                 .append("div")
                 .style("position", "relative")
-                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`);
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
 
             // Main button
             let main_button = dropdown.append("button")
@@ -403,7 +404,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("padding", "10px")
                 .style("font-size", `${0.9}vw`)
                 .style("font-family", "Poppins, sans-serif")
-                .style("width", "100%")
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
                 .style("cursor", "pointer")
                 .style("border", "2px solid black")
                 .style("background", "white")
@@ -427,7 +429,8 @@ export function initializeBooksViz(containerSelector, csvFile) {
                 .style("position", "absolute")
                 .style("top", "100%")
                 .style("left", "0")
-                .style("width", "100%")
+                .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+                .style('height', `${(window.innerHeight * 0.05)}px`)
                 .style('margin-top', '-2px')
                 .style("background", "grey")
                 .style("display", "none")
@@ -608,7 +611,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
         }
 
 
-
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
         function draw_interval(selected_books, interval_label) {
             current_interval_label = interval_label;
@@ -681,7 +683,6 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     update_visible_books_count();
                 });
         }
-
 
         // DRAW THE BOOKS ---------------------------------------------------------------
         function draw_books(book_data, color_scale) {
