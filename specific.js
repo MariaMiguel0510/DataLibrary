@@ -457,11 +457,22 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     .style("background", "#D7D7D7")
                     .style("text-align", "left")
                     .on("click", function (event, d) {
+
+                        // update current sort
+                        current_sort = d.id;
+
+                        // update text of main button
+                        main_button.select("#sort_main_label").text(d.label);
+
                         // close menu
                         menu.style("display", "none");
 
                         // rebuild menu with the new current_sort
                         rebuild_menu();
+
+                        // redraw the books
+                        svg.selectAll("*").remove();
+                        draw_interval(latest_books_in_interval, current_interval_label);
                     });
             }
 
