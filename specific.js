@@ -453,6 +453,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
                     .style('height', `${(window.innerHeight * 0.05)}px`)
                     .style("cursor", "pointer")
                     .style('margin-top', '-2px')
+                    .style("display", "flex")
                     .style("align-items", "center")
                     .style("border", "2px solid black")
                     .style("background", "#D7D7D7")
