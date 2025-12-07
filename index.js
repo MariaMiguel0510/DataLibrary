@@ -3,9 +3,9 @@ import { initializeBooksViz } from './specific.js';
 let edition_width, edition_container, edition_spine, edition_label;
 let info_width, info_container, info_spine, info_label, info_text;
 let specific_width, specific_container, specific_spine, specific_label;
-let info_open = false; // info inicialmente fechado
-let specific_open = false; //specific inicialmente fechado
-let border = 3; // grossura da borda dos livros
+let info_open = false; // info initially closed 
+let specific_open = false; // specific initially closed 
+let border = 3; // thickness of book border
 
 
 // INITIALIZATION
@@ -23,11 +23,13 @@ window.onload = function () {
     info_spine = spine(info_container, 'div', info_width, '110vh', 0, 2, 'pointer', false);
     info_label = label(info_spine, 'h3', 'INFO', 'pointer');
     mouse_effect(info_spine, '#8CE8FB', 'white');
+
     //SHOWS CONTEXT
-    //seleciona o template do html e insere-o dentro do info_container
+    //selects the html template and inserts it into info_container
     let template = document.getElementById('context_template');
     info_text = template.content.cloneNode(true);
     info_container.node().appendChild(info_text);
+
     //TOGGLE INFO
     toggle(info_spine, info_open, [info_container, edition_container],
         [`${window.innerWidth - (specific_width + info_width + border)}px`,
@@ -38,9 +40,11 @@ window.onload = function () {
     specific_container = container(d3.select('main'), 'div');
     specific_spine = spine(specific_container, 'div', specific_width, '110vh', 0, 2, 'pointer', false);
     specific_label = label(specific_spine, 'h3', 'SPECIFIC', 'pointer');
+
     //IMPORT DATA VISUALIZATION
     initializeBooksViz(specific_container, specific_width, border, 'books.csv');
     mouse_effect(specific_spine, '#B79FE9', 'white');
+    
     //TOGGLE SPECIFIC
     toggle(specific_spine, specific_open, [info_container, edition_container, specific_container],
         [`${window.innerWidth - (specific_width + info_width + border)}px`,
@@ -52,8 +56,8 @@ window.onload = function () {
     updatePositions();
 
     //WINDOW RESIZE
-    //permite redimensionar os valores dos contentores e das abas 
-    //e respetivas posições em função da largura da janela
+    // allows to resize the values ​​of the containers and tabs
+    // and their respective positions depending on the window width
     window.addEventListener('resize', () => {
         getWidths();
         updatePositions();
@@ -62,15 +66,14 @@ window.onload = function () {
 
 //RESPONSIVE WIDTHS
 function getWidths() {
-    const total = window.innerWidth;//largura total da janela
-    edition_width = total * 0.06; // 7% da largura total
-    info_width = total * 0.05;    // 4.4% da largura total
-    specific_width = total * 0.07; // 8% da largura total
+    const total = window.innerWidth; // total window width
+    edition_width = total * 0.06; 
+    info_width = total * 0.05;
+    specific_width = total * 0.07;
 }
 
 //UPDATE CONTAINERS AND SPINES
-//permite atualizar a posição dos contentores e das abas, 
-//para que ao redimensionar a janela os seus valores se adaptem
+// allows  to update the position of the containers and flaps -> when the window is resized, its values ​​adapt
 function updatePositions() {
     //containers
     edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`);
@@ -142,15 +145,15 @@ function label(selected, place, texto, cursor) {
 //elemento de click, contentores a mover, valores pos abertura, valores pos inicial)
 function toggle(spine, open, containers, openValues, closedValues) {
     spine.on('click', function () {
-        for (let i = 0; i < containers.length; i++) {//para todos os contentores existentes
-            if (open) { //se estiver fechado
+        for (let i = 0; i < containers.length; i++) { // for all the existing containers
+            if (open) { 
                 containers[i].style('left', openValues[i]);
-            } else {//se estiver aberto
+            } else {
                 containers[i].style('left', closedValues[i]);
             }
         }
 
-        open = !open; //inverte movimento
+        open = !open; // inverts the movement
     });
 }
 
