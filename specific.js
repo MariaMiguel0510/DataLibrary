@@ -146,7 +146,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("bottom", (padding_height) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
-        .style("gap", gap*2 + "px");
+        .style("gap", gap + "px");
 
     // create books count label    
     genre_buttons_container 
@@ -155,6 +155,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("font-size", `${0.9}vw`)
         .style("pointer-events", "none")
         .style("color", "black")
+        .style("margin-bottom", gap*2 + "px")
         .text(`${latest_books_in_interval.length} books`);
 
     // create genre diviser    
