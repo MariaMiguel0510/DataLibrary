@@ -279,33 +279,33 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         // draw first interval by default
         draw_interval(valid_intervals[0].books, valid_intervals[0].label, current_sort);
 
-        //FUNÇÃO PARA ATUALIZAR INTERVALO DE ANO
+        // FUNCTION TO UPDATE YEAR INTERVAL 
         function select_interval_by_year(newYear, previousYear) {
 
-            //determina o intervalo do livro atualmente em close-up
+            // determines the interval of the book currently in close-up
             let intervalCurrent = valid_intervals.find(d => {
                 let [start, end] = d.label.split("-").map(Number);
                 return previousYear >= start && previousYear <= end;
             });
 
-            //determina o intervalo para o duplicate selecionado
+            // determines the interval of the duplicate book
             let intervalTarget = valid_intervals.find(d => {
                 let [start, end] = d.label.split("-").map(Number);
                 return newYear >= start && newYear <= end;
             });
 
-            //se for o MESMO intervalo, não reseta a estante
+            // if its the SAME interval, doesnt reset the shelf
             if (intervalCurrent === intervalTarget) {
-                return; //mantém fundo + filtros + estante intactos
+                return; // keeps background + filters + shelf intact
             }
 
-            //intervalo diferente reseta a timeline 
-            selected_genres.clear(); //limpa géneros ao mudar de intervalo
+            // different intervals resets the timeline 
+            selected_genres.clear(); // clean genres
 
-            svg.selectAll("*").remove();  //limpa estante atual
-            draw_interval(intervalTarget.books); //desenha a nova estante
+            svg.selectAll("*").remove();  // clean current shelf
+            draw_interval(intervalTarget.books); // draw new shelf
 
-            //atualiza posição da highlight bar nos botões
+            // update the highlight bar position
             let buttons = year_buttons_container.selectAll("button").nodes();
             let index = valid_intervals.indexOf(intervalTarget);
 
