@@ -82,12 +82,15 @@ export function create_sort_buttons({
             .style("padding", "10px")
             .style("font-size", `${0.9}vw`)
             .style("font-family", "Poppins, sans-serif")
-            .style('margin-top', '-2px')
-            .style("border", "2px solid black")
+            .style("width", `${(window.innerWidth * 0.17) - padding_width}px`)
+            .style('height', `${(window.innerHeight * 0.05)}px`)
+            .style("cursor", "pointer")
             .style("display", "flex")
             .style("align-items", "center")
+            .style('margin-top', '-2px')
+            .style("border", "2px solid black")
             .style("background", "#D7D7D7")
-            .style("cursor", "pointer")
+            .style("text-align", "left")
             .on("click", (event, d) => {
 
                 // update current_sort
