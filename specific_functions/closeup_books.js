@@ -1,17 +1,17 @@
-export function closeup_books(containerSelector, spine_width, border, book, bookColor, allBooks, updateTimeline) {
+export function closeup_books(container_selector, spine_width, border, book, book_color, all_books, update_timeline) {
 
     let closeup_container, closeup_container_book, closeup_book, closeup_book_height = '85vh';
     let closeup_close, closeup_btn, closeup_title, closeup_author, closeup_info;
     let duplicates, duplicates_container, duplicates_books, duplicates_columns;
-    let show_cover = false; //inicialmente não estou a mostrar a capa original
+    let show_cover = false; //initially it doesnt show the original cover
     let cover_img = null;
 
-    // Seleciona o container de close-up se existir
+    // select close-up container
     closeup_container = d3.select('#closeup_container');
 
-    // Se não existir, cria o container
+    // if it doesn't exist, creates the container
     if (closeup_container.empty()) {
-        closeup_container = containerSelector
+        closeup_container = container_selector
             .append('div')
             .attr('id', 'closeup_container')
             .style('width', '100vw')
@@ -22,10 +22,10 @@ export function closeup_books(containerSelector, spine_width, border, book, book
             .style("z-index", 3);
     }
 
-    //remove closeups que estejam abertos
+    // remove upen close-ups
     closeup_container.select('#closeup_container_book').remove();
 
-    //contentor que contém o livro em close up
+    // container with the close-up book 
     closeup_container_book = closeup_container
         .append('div')
         .attr('id', 'closeup_container_book')
@@ -37,26 +37,29 @@ export function closeup_books(containerSelector, spine_width, border, book, book
         .style('position', 'relative')
         .style('left', `${spine_width + border}px`);
 
-    //CLOSE UP BOOK
+    // CLOSE-UP BOOK
     closeup_book = closeup_container_book
         .append('div')
         .style('width', '33vw')
         .style('height', closeup_book_height)
-        .style('background-color', bookColor)
+        .style('background-color', book_color)
         .style('display', 'flex')
         .style('flex-direction', 'column')
         .style('position', 'relative');
 
     //BOOK TITLE
     closeup_title = text(closeup_book, 'h4', book.name, '2vw', '600', '100%', '25vw', '0', '5vh', '10vh 3vw 0vh 3vw', null, 'break-word', 'anywhere', null);
+    
     //BOOK AUTHOR
     closeup_author = text(closeup_book, 'h4', book.author, '1.3vw', '400', null, '20vw', '0', '3.3vh', '5vh 3vw 0vw 3vw', null, null, null, null);
+    
     //BOOK PUBLISHER/GENRE/RATING/PAGES/LANGUAGE
     let other_data = [`Publisher: ${book.publisher}`, `Genre: ${book.genre}`, `Average Rating: ${book.rating}`, `Number of Pages: ${book.pages}`, `Language: ${book.lang}`];
     closeup_info = closeup_book
         .append('div')
         .style('margin-top', 'auto')
         .style('padding', '2vh 3vw 6vh 3vw');
+
     closeup_info.selectAll('p')
         .data(other_data)
         .enter()
@@ -65,7 +68,7 @@ export function closeup_books(containerSelector, spine_width, border, book, book
             text(d3.select(this), null, d, '1vw', '400', null, '20vw', null, '1vh', null, null, 'break-word', null, null);
         });
 
-    //CLOSE X ELEMENT
+    // X ELEMENT
     closeup_close = closeup_book
         .append('svg')
         .attr('width', 24)
@@ -76,19 +79,22 @@ export function closeup_books(containerSelector, spine_width, border, book, book
         .style('right', '1.5vw')
         .style('cursor', 'pointer')
         .style('z-index', '10');
+
     closeup_close.append('line')
         .attr('x1', 6).attr('y1', 6)
         .attr('x2', 21).attr('y2', 21)
         .attr('stroke', 'black')
         .attr('stroke-width', 2);
+
     closeup_close.append('line')
         .attr('x1', 21).attr('y1', 6)
         .attr('x2', 6).attr('y2', 21)
         .attr('stroke', 'black')
         .attr('stroke-width', 2);
-    //CLOSE THE BOOK POP UP
+
+    // CLOSE THE BOOK POP UP
     closeup_close.on('click', () => {
-        if (closeup_container) closeup_container.remove(); // remove todo o close-up
+        if (closeup_container) closeup_container.remove(); // removes the close-up
     });
 
     //BUTTON ORIGINAL COVER
@@ -114,7 +120,7 @@ export function closeup_books(containerSelector, spine_width, border, book, book
     closeup_btn.on('click', async () => {
         if (closeup_book) {
             if (show_cover) {
-                // repõe o conteúdo
+                // restore the content
                 closeup_title.style('display', '');
                 closeup_author.style('display', '');
                 closeup_info.style('display', '');
@@ -124,20 +130,20 @@ export function closeup_books(containerSelector, spine_width, border, book, book
                     cover_img = null;
                 }
             } else {
-                // retira o conteúdo
+                // removes the content
                 closeup_title.style('display', 'none');
                 closeup_author.style('display', 'none');
                 closeup_info.style('display', 'none');
 
-                //se a capa ainda não foi carregada
+                // if the cover isnt loaded
                 if (!cover_img) {
-                    //e existir isbn
+                    // and isbn exists
                     if (book.isbn) {
                         const coverURL = `https://covers.openlibrary.org/b/isbn/${book.isbn}-L.jpg`;
                         try {
-                            //verifica se a imagem existe
+                            // verify if the image exists 
                             let response = await fetch(coverURL, { method: 'GET' });
-                            //desenha a capa
+                            // draw the cover
                             if (response.ok) {
                                 cover_img = closeup_book
                                     .append('img')
@@ -147,26 +153,26 @@ export function closeup_books(containerSelector, spine_width, border, book, book
                                     .style('max-width', '100%')
                                     .style('height', `calc(${closeup_book_height} - 16vh)`)
                                     .style('padding', '10vh 11vw 0vh 3vw')
-                            } else {//mensagem de não haver capa
+                            } else { //message indicating there is no cover
                                 cover_img = text(closeup_book, 'div', 'Cover not found', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                             }
-                        } catch (err) {//mensagem de erro
+                        } catch (err) { // error message
                             console.error(err);
                             cover_img = text(closeup_book, 'div', 'Error loading cover', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                         }
-                    } else {// caso o CSV não tenha ISBN
+                    } else { // if the csv doesnt have the isbn
                         cover_img = text(closeup_book, 'div', 'ISBN missing', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                     }
                 }
             }
         }
-        show_cover = !show_cover; // inverte a interação do botão
+        show_cover = !show_cover; // reverses the button interaction
     });
 
-    //BOOKS WIDTH SAME AUTHOR AND TITLE
-    duplicates = allBooks.filter(b => b.name === book.name && b.author === book.author);
+    //BOOKS WITH SAME AUTHOR AND TITLE 
+    duplicates = all_books.filter(b => b.name === book.name && b.author === book.author);
 
-    //se houver mais de que um livro com o mesmo titulo e autor
+    // if theres more than 1 book with the same title and author
     if (duplicates.length > 1) {
         duplicates_container = closeup_container_book
             .append('div')
@@ -180,8 +186,8 @@ export function closeup_books(containerSelector, spine_width, border, book, book
             .style('top', '0');
 
         //CREATE THE NUMER OF EXISTING DUPLICATES
-        let max = 4;  //nº máximo de livros por coluna
-        let nC = Math.ceil(duplicates.length / max);//nº de colunas criadas
+        let max = 4;  // maximum number of books per column
+        let nC = Math.ceil(duplicates.length / max); // number of columns created
 
         for (let i = 0; i < nC; i++) {
             duplicates_columns = duplicates_container
@@ -199,14 +205,14 @@ export function closeup_books(containerSelector, spine_width, border, book, book
                 duplicates_books = duplicates_columns
                     .append('div')
                     .style('width', '7vw')
-                    .style('height', `calc(((${closeup_book_height} - 6vh)/ 4))`)//6vh por causa do gap (2vh)
-                    .style('background-color', bookColor)
+                    .style('height', `calc(((${closeup_book_height} - 6vh)/ 4))`)
+                    .style('background-color', book_color)
                     .style('position', 'relative')
                     .style('cursor', 'pointer')
                     .on('click', () => {
-                        closeUp_books(containerSelector, spine_width, border, dupBook, bookColor, allBooks, updateTimeline);
-                        //atualiza a estante quando se muda de ano
-                        if (updateTimeline) updateTimeline(dupBook.date, book.date);
+                        closeup_books(container_selector, spine_width, border, dupBook, book_color, all_books, update_timeline);
+                        // updates the bookshelf when the year changes
+                        if (update_timeline) update_timeline(dupBook.date, book.date);
                     });
 
                 //DUPLICATES TITLE
@@ -222,7 +228,7 @@ export function closeup_books(containerSelector, spine_width, border, book, book
     function text(place, format, conteudo, font_size, peso, max, larg, margem, entrelinha, paddng, pos, corte_1, corte_2, fundo) {
         let elem = place;
 
-        //se 'format' for definido, cria o elemento dentro do 'place'
+        // if 'format' is defined, it creates the element inside the 'place' tag
         if (format) {
             elem = place.append(format);
         }
