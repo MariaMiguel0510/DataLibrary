@@ -74,7 +74,8 @@ export function closeUp_books(containerSelector, spine_width, border, book, book
         .style('position', 'absolute')
         .style('top', '3vh')
         .style('right', '1.5vw')
-        .style('cursor', 'pointer');
+        .style('cursor', 'pointer')
+        .style('z-index', '10');
     closeup_close.append('line')
         .attr('x1', 6).attr('y1', 6)
         .attr('x2', 21).attr('y2', 21)
@@ -142,9 +143,10 @@ export function closeUp_books(containerSelector, spine_width, border, book, book
                                     .append('img')
                                     .attr('src', coverURL)
                                     .style('object-fit', 'contain')
-                                    .style('position', 'absolute')
+                                    .style('position', 'relative')
+                                    .style('max-width', '100%')
                                     .style('height', `calc(${closeup_book_height} - 16vh)`)
-                                    .style('padding', '10vh 3vw 0vh 3vw')
+                                    .style('padding', '10vh 11vw 0vh 3vw')
                             } else {//mensagem de não haver capa
                                 cover_img = text(closeup_book, 'div', 'Cover not found', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                             }

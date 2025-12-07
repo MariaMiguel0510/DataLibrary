@@ -39,7 +39,7 @@ window.onload = function () {
     specific_spine = spine(specific_container, 'div', specific_width, '110vh', 0, 2, 'pointer', false);
     specific_label = label(specific_spine, 'h3', 'SPECIFIC', 'pointer');
     //IMPORT DATA VISUALIZATION
-    initializeBooksViz(specific_container, 'books.csv');
+    initializeBooksViz(specific_container, specific_width, border, 'books.csv');
     mouse_effect(specific_spine, '#B79FE9', 'white');
     //TOGGLE SPECIFIC
     toggle(specific_spine, specific_open, [info_container, edition_container, specific_container],
@@ -108,12 +108,12 @@ function spine(selected, place, larg, alt, move, index, cursor, roda,) {
         .style('bottom', '0px')
         .style('border', `${border}px solid black`)
         .style('background-color', 'white')
-        .style('cursor', cursor);
+        .style('cursor', cursor)
+        .style('z-index', 10);
 
     if (roda) {
         spine
         spine.style('transform', `rotate(9deg) translate(-14.3vh, 3vh)`)
-        //spine.style('transform', `rotate(9deg)`)
         .style('transform-origin', '100% 100%');
     }
     return spine;
