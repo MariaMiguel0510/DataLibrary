@@ -1,9 +1,10 @@
-import { create_genre_buttons } from "./specific_functions/create_genre_buttons.js";
+import { create_genre_buttons } from "./specific_functions/genre_buttons.js";
+import { create_year_buttons } from "./specific_functions/year_buttons.js";  
 import { draw_books } from "./specific_functions/draw_books.js";
 import { apply_sort, create_sort_buttons } from "./specific_functions/sort_modes.js";
 import { create_selection_buttons } from "./specific_functions/selection_modes.js";
 
-export function initializeBooksViz(containerSelector, spine_width, border, csvFile) {
+export function initializeBooksViz(container_selector, spine_width, border, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
@@ -24,8 +25,8 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
     padding_width = window.innerWidth * 0.05;
     padding_height = window.innerHeight * 0.09;
 
-    canvas_width = containerSelector.node().clientWidth - padding_width * 2;
-    canvas_height = containerSelector.node().clientHeight - padding_height * 2;
+    canvas_width = container_selector.node().clientWidth - padding_width * 2;
+    canvas_height = container_selector.node().clientHeight - padding_height * 2;
 
     bookshelf_width = canvas_width - (3.3 * padding_width);
     gap = 5;
@@ -33,7 +34,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
 
     // create books container (for vertical scroll)
     d3.select('#books_container').remove();
-    books_container = containerSelector
+    books_container = container_selector
         .append("div")
         .attr("id", "books_container")
         .style("position", "relative")
@@ -51,7 +52,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
     }`);
 
     // create scrollbar container
-    scrollbar_container = containerSelector
+    scrollbar_container = container_selector
         .append("div")
         .attr("id", "custom_scrollbar")
         .style("position", "absolute")
@@ -78,7 +79,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
     });
 
     // create selection buttons container
-    selection_buttons_container = containerSelector
+    selection_buttons_container = container_selector
         .append("div")
         .attr("id", "selection_buttons_container")
         .style("display", "flex")
@@ -91,7 +92,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
         .style("gap", gap + "px");
 
     // create sort buttons container
-    sort_buttons_container = containerSelector
+    sort_buttons_container = container_selector
         .append("div")
         .attr("id", "sort_buttons_container")
         .style("display", "flex")
@@ -110,7 +111,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
         .attr('height', canvas_height);
 
     // tooltip for books
-    book_tooltip = containerSelector
+    book_tooltip = container_selector
         .append("div")
         .attr("id", "book_tooltip")
         .style("position", "absolute")
@@ -125,7 +126,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
 
     // create years container
     d3.select('#year_buttons_container').remove();
-    year_buttons_container = containerSelector
+    year_buttons_container = container_selector
         .append('div')
         .attr('id', 'year_buttons_container')
         .style('position', 'absolute')
@@ -133,7 +134,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
         .style('left', (padding_width * 2) + "px");
 
     // create genre container
-    genre_buttons_container = containerSelector
+    genre_buttons_container = container_selector
         .append("div")
         .attr("id", "genre_buttons_container")
         .style("display", "flex")
@@ -155,7 +156,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
 
     // create genre diviser    
     d3.select('#genre_divider').remove();
-    genre_divider = containerSelector
+    genre_divider = container_selector
         .append('div')
         .attr('id', 'genre_divider')
         .style('position', 'absolute')
@@ -263,7 +264,17 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
         });
 
         // create year buttons
-        create_year_buttons(valid_intervals);
+        create_year_buttons(
+            valid_intervals,
+            highlight_bar,
+            year_buttons_container,
+            year_tooltip,
+            container_selector,
+            draw_interval,
+            canvas_width,
+            padding_width,
+            svg
+        );
 
         // draw first interval by default
         draw_interval(valid_intervals[0].books, valid_intervals[0].label, current_sort);
@@ -322,118 +333,6 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
                 .map(([g]) => g);
 
             return filtered.filter(d => valid_genres.includes(d.genre));
-        }
-
-        // BUTTONS FOR YEAR INTERVAL ----------------------------------------------------------
-        function create_year_buttons(valid_intervals) {
-            let selected_interval = null;
-
-            // bar to show the selected interval
-            highlight_bar = year_buttons_container
-                .append("div")
-                .attr("id", "year_highlight")
-                .style("position", "absolute")
-                .style("width", "6px")
-                .style("height", "30px")
-                .style("border", "2px solid black")
-                .style("pointer-events", "none")
-                .style("background", "white")
-                .style("opacity", 1)
-                .style("z-index", 2)
-                .style("transition", "left 0.15s, top 0.15s, opacity 0.15s");
-
-            // interval text
-            year_tooltip = containerSelector
-                .append("div")
-                .attr("id", "year_tooltip")
-                .style("position", "absolute")
-                .style("pointer-events", "none")
-                .style("padding", "4px 8px")
-                .style("font-size", `${0.9}vw`)
-                .style("font-family", "Poppins, sans-serif")
-                .style("background", "none")
-                .style("border", "none")
-                .style("opacity", 1)
-                .style("transition", "opacity 0.15s");
-
-            // show tooltip above the button
-            function show_year_tooltip(button, label) {
-                let rect = button.getBoundingClientRect();
-                let container_rect = containerSelector.node().getBoundingClientRect();
-
-                year_tooltip
-                    .html(label)
-                    .style("opacity", 1)
-                    .style("left", (rect.left - container_rect.left + rect.width / 2) + "px")
-                    .style("top", (rect.top - container_rect.top - 30) + "px")
-                    .style("transform", "translateX(-50%)");
-            }
-
-            // calculate number of books per interval
-            let interval_counts = valid_intervals.map(d => d.books.length);
-
-            // gray scale
-            let gray_scale = d3.scaleLog()
-                .domain([d3.min(interval_counts), d3.max(interval_counts)])
-                .range(["#D7D7D7", "#6D6D6D"]);  // light to dark
-
-            // create buttons for each year interval
-            year_buttons_container.selectAll('button')
-                .data(valid_intervals)
-                .enter()
-                .append('button')
-                .attr("class", "year-button")
-                .html("&nbsp;") // button keeps its size but without text
-                .style('margin-right', '-2px')
-                .style("border", "2px solid black")
-                .style('padding', `${canvas_width * 0.003}px`)
-                .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
-                .style("background-color", d => gray_scale(d.books.length))
-                .style("cursor", "pointer")
-                // hover
-                .on("mouseover", function (event, d) {
-                    show_year_tooltip(this, d.label);
-                })
-                .on("mouseout", function () {
-                    if (selected_interval) {
-                        show_year_tooltip(selected_interval.button, selected_interval.label);
-                    } else {
-                        year_tooltip.style("opacity", 0);
-                    }
-                })
-                .on("click", function (event, d) {
-                    selected_interval = {
-                        button: this,
-                        label: d.label
-                    };
-
-                    // move highlight bar for selection
-                    highlight_bar
-                        .style("opacity", 1)
-                        .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
-                        .style("top", (this.offsetTop - 3) + "px");
-
-                    show_year_tooltip(this, d.label); // permanent tooltip in the selected area
-                    svg.selectAll("*").remove(); // clear previous charts
-                    draw_interval(d.books, d.label); // draw selected interval
-                    d3.select("#books_count_label") // update total books label
-                        .text(`${d.books.length} books`);
-                });
-
-            // positioning the first position for the highlight_bar & tooltip
-            let first_button = year_buttons_container.select("button").node();
-            let first_interval = valid_intervals[0];
-
-            selected_interval = {
-                button: first_button,
-                label: first_interval.label
-            };
-
-            highlight_bar
-                .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
-                .style("top", (first_button.offsetTop - 3) + "px");
-
-            show_year_tooltip(first_button, first_interval.label);
         }
 
         // UPDATE BOOKS COUNT
@@ -503,7 +402,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
                 books_container,
                 scrollbar_container,
                 gap,
-                containerSelector,
+                container_selector,
                 spine_width,
                 border,
                 full_dataset,
