@@ -358,7 +358,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
 
         // DRAW THE YEAR INTERVAL ---------------------------------------------------------------
-        function draw_interval(selected_books, interval_label, current_sort = "chrono") {
+        function draw_interval(selected_books, interval_label) {
             current_interval_label = interval_label;
 
             // keep orginial order for the interval
