@@ -3,6 +3,7 @@ import { closeup_books } from "./closeup_books.js";
 export function draw_books(
     svg,
     book_data,
+    selected_genres,
     color_scale,
     padding_width,
     padding_height,
@@ -88,8 +89,9 @@ export function draw_books(
         .attr('fill', d => color_scale(d.genre))
         .style('cursor', 'pointer')
         .on('click', function (event, d) {
-            event.stopPropagation();
-            // chama closeup_books do módulo importado
+            event.stopPropagation(); // evita fechar imediatamente
+            if (selected_genres.size > 0 && !selected_genres.has(d.genre)) return;
+            //abre o closeup do livro específico
             closeup_books(container_selector, spine_width, border, d, color_scale(d.genre), full_dataset, select_interval_by_year);
         })
         .on("mouseover", function (event, d) {

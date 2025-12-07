@@ -393,6 +393,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
             draw_books(
                 svg,
                 latest_books_in_interval,
+                selected_genres,
                 global_color_scale,
                 padding_width,
                 padding_height,
