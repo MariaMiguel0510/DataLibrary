@@ -136,7 +136,7 @@ export function closeUp_books(containerSelector, spine_width, border, book, book
                         const coverURL = `https://covers.openlibrary.org/b/isbn/${book.isbn}-L.jpg`;
                         try {
                             //verifica se a imagem existe
-                            let response = await fetch(coverURL, { method: 'HEAD' });
+                            let response = await fetch(coverURL, { method: 'GET' });
                             //desenha a capa
                             if (response.ok) {
                                 cover_img = closeup_book
