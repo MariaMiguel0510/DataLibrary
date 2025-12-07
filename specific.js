@@ -2,7 +2,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container, scrollbar_container, thumb;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, wrapper, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container, scrollbar_container, thumb;
     let selected_genres = new Set();
 
     let current_interval_label = null;
@@ -146,16 +146,12 @@ export function initializeBooksViz(containerSelector, csvFile) {
         .style("bottom", (padding_height) + "px")
         .style("right", (padding_width * 0.5) + "px")
         .style("flex-direction", "column")
-        .style("gap", gap + "px");
+        .style("gap", gap*2 + "px");
 
     // create books count label    
-    books_count_label = containerSelector
+    genre_buttons_container 
         .append("div")
         .attr("id", "books_count_label")
-        .style("position", "absolute")
-        .style("bottom", (padding_height * 7.2) + "px")
-        //.style("top", (padding_height * 3.5) + "px")
-        .style("right", (padding_width * 1.9) + "px")
         .style("font-size", `${0.9}vw`)
         .style("pointer-events", "none")
         .style("color", "black")
@@ -647,7 +643,7 @@ export function initializeBooksViz(containerSelector, csvFile) {
 
         // CREATE THE GENRE BUTTONS ---------------------------------------------------------------
         function create_genre_buttons(valid_genres, filtered_books, color_scale) {
-            genre_buttons_container.selectAll("*").remove();
+            genre_buttons_container.selectAll("button").remove();
 
             // Set dos géneros presentes no intervalo
             let genres_present = new Set(filtered_books.map(d => d.genre));
