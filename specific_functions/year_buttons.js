@@ -7,12 +7,13 @@ export function create_year_buttons(
     draw_interval,
     canvas_width,
     padding_width,
-    svg
+    svg,
+    elements
 ) {
     let selected_interval = null;
 
     // bar to show the selected interval
-    highlight_bar = year_buttons_container
+    elements.highlight_bar = year_buttons_container
         .append("div")
         .attr("id", "year_highlight")
         .style("position", "absolute")
@@ -26,7 +27,7 @@ export function create_year_buttons(
         .style("transition", "left 0.15s, top 0.15s, opacity 0.15s");
 
     // interval text
-    year_tooltip = container_selector
+    elements.year_tooltip = container_selector
         .append("div")
         .attr("id", "year_tooltip")
         .style("position", "absolute")
@@ -44,13 +45,15 @@ export function create_year_buttons(
         let rect = button.getBoundingClientRect();
         let container_rect = container_selector.node().getBoundingClientRect();
 
-        year_tooltip
+        elements.year_tooltip
             .html(label)
             .style("opacity", 1)
             .style("left", (rect.left - container_rect.left + rect.width / 2) + "px")
             .style("top", (rect.top - container_rect.top - 30) + "px")
             .style("transform", "translateX(-50%)");
     }
+    elements.show_year_tooltip = show_year_tooltip;
+
 
     // calculate number of books per interval
     let interval_counts = valid_intervals.map(d => d.books.length);
@@ -81,7 +84,7 @@ export function create_year_buttons(
             if (selected_interval) {
                 show_year_tooltip(selected_interval.button, selected_interval.label);
             } else {
-                year_tooltip.style("opacity", 0);
+                elements.year_tooltip.style("opacity", 0);
             }
         })
         .on("click", function (event, d) {
@@ -91,14 +94,15 @@ export function create_year_buttons(
             };
 
             // move highlight bar for selection
-            highlight_bar
+            elements.highlight_bar
                 .style("opacity", 1)
                 .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
                 .style("top", (this.offsetTop - 3) + "px");
 
-            show_year_tooltip(this, d.label); // permanent tooltip in the selected area
+
             svg.selectAll("*").remove(); // clear previous charts
             draw_interval(d.books, d.label); // draw selected interval
+            show_year_tooltip(this, d.label); // permanent tooltip in the selected area
             d3.select("#books_count_label") // update total books label
                 .text(`${d.books.length} books`);
         });
@@ -112,7 +116,7 @@ export function create_year_buttons(
         label: first_interval.label
     };
 
-    highlight_bar
+    elements.highlight_bar
         .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
         .style("top", (first_button.offsetTop - 3) + "px");
 

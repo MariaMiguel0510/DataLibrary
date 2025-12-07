@@ -49,8 +49,8 @@ export function create_genre_buttons(
             }
 
             svg.selectAll("rect")
-                .style("opacity", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? 1 : 0);
-
+                .style("opacity", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? 1 : 0)
+                .style("cursor", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? "pointer" : "auto");
             update_visible_books_count();
         });
 }

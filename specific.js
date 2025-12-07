@@ -1,5 +1,5 @@
 import { create_genre_buttons } from "./specific_functions/genre_buttons.js";
-import { create_year_buttons } from "./specific_functions/year_buttons.js";  
+import { create_year_buttons } from "./specific_functions/year_buttons.js";
 import { draw_books } from "./specific_functions/draw_books.js";
 import { apply_sort, create_sort_buttons } from "./specific_functions/sort_modes.js";
 import { create_selection_buttons } from "./specific_functions/selection_modes.js";
@@ -9,6 +9,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
     let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container, scrollbar_container, thumb;
+    let yearElements = {};//armazena tooltip e highlight_bar 
     let selected_genres = new Set();
     let full_dataset;//conjunto de todos os dados
 
@@ -273,7 +274,8 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
             draw_interval,
             canvas_width,
             padding_width,
-            svg
+            svg,
+            yearElements
         );
 
         // draw first interval by default
@@ -311,10 +313,13 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
             if (index >= 0) {
                 let btn = buttons[index];
-                highlight_bar
+                yearElements.highlight_bar
                     .style("opacity", 1)
                     .style("left", (btn.offsetLeft + btn.offsetWidth / 2 - 3) + "px")
                     .style("top", (btn.offsetTop - 2) + "px");
+                //atualiza o label de anos sempre o intervalo muda
+                yearElements.show_year_tooltip(btn, intervalTarget.label);
+
             }
         }
 
@@ -386,7 +391,8 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
                 genre_stroke_colors,
                 window,
                 padding_width,
-                svg
+                svg,
+                yearElements
             );
 
             // draw sorted books
