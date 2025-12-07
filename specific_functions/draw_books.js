@@ -9,9 +9,10 @@ export function draw_books(
     bookshelf_width,
     shelf_height,
     canvas_height,
-    books_container,
+    books_container, 
+    scrollbar_container,
     gap,
-    containerSelector,
+    container_selector,
     spine_width,
     border,
     full_dataset,
@@ -73,7 +74,7 @@ export function draw_books(
     let svg_height = Math.max(last_shelf_y + shelf_height, canvas_height);
     svg.attr("height", svg_height);
 
-    update_scrollbar_visibility(books_container, svg, canvas_height);
+    update_scrollbar_visibility(books_container, scrollbar_container);
 
     let book_group = svg.append("g");
     book_group.selectAll('rect')
@@ -89,7 +90,7 @@ export function draw_books(
         .on('click', function (event, d) {
             event.stopPropagation();
             // chama closeup_books do módulo importado
-            closeup_books(containerSelector, spine_width, border, d, color_scale(d.genre), full_dataset, select_interval_by_year);
+            closeup_books(container_selector, spine_width, border, d, color_scale(d.genre), full_dataset, select_interval_by_year);
         })
         .on("mouseover", function (event, d) {
             const opacity = +d3.select(this).style("opacity");
@@ -136,13 +137,14 @@ export function draw_books(
         .attr("stroke-width", 3);
 }
 
-// Exemplo simples para atualizar a scrollbar — você pode ajustar conforme seu código real
-function update_scrollbar_visibility(books_container, svg, canvas_height) {
-    let realHeight = +books_container.node().dataset.realHeight;
-    if (realHeight > canvas_height) {
-        // Mostrar scrollbar, por exemplo
-        books_container.style("overflow-y", "auto");
+// update scrollbar's visibility
+function update_scrollbar_visibility(books_container, scrollbar_container) {
+    let real_height = parseFloat(books_container.node().dataset.realHeight);
+    let container_height = books_container.node().clientHeight;
+
+    if (real_height > container_height) {
+        scrollbar_container.style("display", "block");
     } else {
-        books_container.style("overflow-y", "hidden");
+        scrollbar_container.style("display", "none");
     }
 }

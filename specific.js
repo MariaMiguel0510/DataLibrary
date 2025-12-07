@@ -77,18 +77,6 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
         thumb.style("top", (scroll_top / scroll_height * max_top) + "px");
     });
 
-    // update scrollbar's visibility
-    function update_scrollbar_visibility() {
-        let real_height = parseFloat(books_container.node().dataset.realHeight);
-        let container_height = books_container.node().clientHeight;
-
-        if (real_height > container_height) {
-            scrollbar_container.style("display", "block");
-        } else {
-            scrollbar_container.style("display", "none");
-        }
-    }
-
     // create selection buttons container
     selection_buttons_container = containerSelector
         .append("div")
@@ -513,6 +501,7 @@ export function initializeBooksViz(containerSelector, spine_width, border, csvFi
                 shelf_height,
                 canvas_height,
                 books_container,
+                scrollbar_container,
                 gap,
                 containerSelector,
                 spine_width,
