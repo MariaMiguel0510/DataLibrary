@@ -1,4 +1,4 @@
-export function closeUp_books(containerSelector, spine_width, border, book, bookColor, allBooks, updateTimeline) {
+export function closeup_books(containerSelector, spine_width, border, book, bookColor, allBooks, updateTimeline) {
 
     let closeup_container, closeup_container_book, closeup_book, closeup_book_height = '85vh';
     let closeup_close, closeup_btn, closeup_title, closeup_author, closeup_info;
