@@ -26,7 +26,6 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     padding_width = window.innerWidth * 0.05;
     padding_height = window.innerHeight * 0.09;
 
-    //window dimensions
     canvas_width = container_selector.node().clientWidth - padding_width * 2;
     canvas_height = container_selector.node().clientHeight - padding_height * 2;
 
@@ -34,20 +33,44 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     gap = 5;
     shelf_height = 80;
 
-    //create books container (for vertical scroll)
+    // create books container (for vertical scroll)
     d3.select('#books_container').remove();
-    books_container = contentores(container_selector, 'div', 'books_container', 'relative', null, null, null, null, false, canvas_width + "px", canvas_height + "px", null, false, 'default');
-    books_container.style("overflow-x", "hidden")
+    books_container = container_selector
+        .append("div")
+        .attr("id", "books_container")
+        .style("position", "relative")
+        .style("width", canvas_width + "px")
+        .style("height", canvas_height + "px")
+        .style("overflow-x", "hidden")
         .style("overflow-y", "auto")
         .style("scrollbar-width", "none") // Firefox
-        .style("-ms-overflow-style", "none")// IE/Edge antigo
-        .append("style").text(`#books_container::-webkit-scrollbar {display: none;}`);
+        .style("-ms-overflow-style", "none"); // IE/Edge antigo
 
-    //create scrollbar container
-    scrollbar_container = contentores(container_selector, 'div', 'custom_scrollbar', 'absolute', padding_height - padding_height * 0.3 + "px", null, (padding_width * 4) + "px", null, false, '4px', canvas_height - padding_height * 0.67 + "px", '#D7D7D7', false, 'default');
+    // Remove bar in Chrome/Safari/Edge
+    books_container.append("style").text(`
+    #books_container::-webkit-scrollbar {
+        display: none;
+    }`);
 
-    //scroll bar    
-    thumb = contentores(scrollbar_container, 'div', null, 'relative', null, null, null, null, false, '100%', '50px', 'black', false, 'default');
+    // create scrollbar container
+    scrollbar_container = container_selector
+        .append("div")
+        .attr("id", "custom_scrollbar")
+        .style("position", "absolute")
+        .style("top", padding_height - padding_height * 0.3 + "px")
+        .style("right", (padding_width * 4) + "px")
+        .style("width", "4px")
+        .style("height", canvas_height - padding_height * 0.67 + "px")
+        .style("background", "#D7D7D7");
+
+    // scroll bar    
+    thumb = scrollbar_container
+        .append("div")
+        .style("width", "100%")
+        .style("height", "50px") // tamanho inicial, vai atualizar depois
+        .style("background", "black") // cor da barra
+        .style("position", "relative");
+
     books_container.on("scroll", function () {
         let scroll_top = books_container.node().scrollTop;
         let scroll_height = books_container.node().scrollHeight - books_container.node().clientHeight;
@@ -56,42 +79,93 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         thumb.style("top", (scroll_top / scroll_height * max_top) + "px");
     });
 
-    //create selection buttons container
-    selection_buttons_container = contentores(container_selector, 'div', 'selection_buttons_container', 'absolute', `${canvas_height * 0.1}px`, null, (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, false, 'default');
+    // create selection buttons container
+    selection_buttons_container = container_selector
+        .append("div")
+        .attr("id", "selection_buttons_container")
+        .style("display", "flex")
+        .style("position", "absolute")
+        .style("top", `${canvas_height * 0.1}px`)
+        .style("right", (padding_width * 0.5) + "px")
+        .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
+        .style('height', `${(window.innerHeight * 0.05)}px`)
+        .style("flex-direction", "column")
+        .style("gap", gap + "px");
 
     // create sort buttons container
-    sort_buttons_container = contentores(container_selector, 'div', 'sort_buttons_container', 'absolute', null, (padding_height * 9) + "px", (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, false, 'default');
+    sort_buttons_container = container_selector
+        .append("div")
+        .attr("id", "sort_buttons_container")
+        .style("display", "flex")
+        .style("position", "absolute")
+        .style("bottom", (padding_height * 9) + "px")
+        .style("right", (padding_width * 0.5) + "px")
+        .style('width', `${(window.innerWidth * 0.17) - padding_width}px`)
+        .style('height', `${(window.innerHeight * 0.05)}px`)
+        .style("flex-direction", "column")
+        .style("gap", gap + "px");
 
-    //new svg element
+    // new svg element
     svg = books_container
         .append('svg')
         .attr('width', canvas_width)
         .attr('height', canvas_height);
 
-    //tooltip for books
-    book_tooltip = contentores(container_selector, 'div', 'book_tooltip', 'absolute', null, null, null, null, false, 'auto', 'auto', 'white', true, 'auto');
-    book_tooltip.style("padding", "6px 10px")
+    // tooltip for books
+    book_tooltip = container_selector
+        .append("div")
+        .attr("id", "book_tooltip")
+        .style("position", "absolute")
+        .style("pointer-events", "none")
+        .style("padding", "6px 10px")
+        .style("font-size", `${0.9}vw`)
+        .style("font-family", "Poppins, sans-serif")
+        .style("background", "white")
         .style("border", "2px solid black")
         .style("opacity", 0)
         .style("z-index", 99999);
 
-    //create years container
+    // create years container
     d3.select('#year_buttons_container').remove();
-    year_buttons_container = contentores(container_selector, 'div', 'year_buttons_container', 'absolute', null, (padding_height) + "px", null, (padding_width * 2) + "px", false, 'auto', 'auto', null, false, 'default');
+    year_buttons_container = container_selector
+        .append('div')
+        .attr('id', 'year_buttons_container')
+        .style('position', 'absolute')
+        .style('bottom', (padding_height) + "px")
+        .style('left', (padding_width * 2) + "px");
 
-    //create genre container
-    genre_buttons_container = contentores(container_selector, 'div', 'genre_buttons_container', 'absolute', null, (padding_height) + "px", (padding_width * 0.5) + "px", null, true, null, null, null, false, 'default')
+    // create genre container
+    genre_buttons_container = container_selector
+        .append("div")
+        .attr("id", "genre_buttons_container")
+        .style("display", "flex")
+        .style("position", "absolute")
+        .style("bottom", (padding_height) + "px")
+        .style("right", (padding_width * 0.5) + "px")
+        .style("flex-direction", "column")
+        .style("gap", gap + "px");
 
-    // create books count label
-    contentores(genre_buttons_container, 'div', 'books_count_label', null, null, null, null, null, false, null, null, 'black', true, 'auto')
+    // create books count label    
     genre_buttons_container
+        .append("div")
+        .attr("id", "books_count_label")
+        .style("font-size", `${0.9}vw`)
         .style("pointer-events", "none")
+        .style("color", "black")
         .style("margin-bottom", gap * 2 + "px")
         .text(`${latest_books_in_interval.length} books`);
 
     // create genre diviser    
     d3.select('#genre_divider').remove();
-    genre_divider = contentores(container_selector, 'div', 'genre_divider', 'absolute', '-20px', '0', ((canvas_width * 0.17) + (padding_width * 0.5)) + 'px', null, false, '2px', 'auto', 'black', false, 'default')
+    genre_divider = container_selector
+        .append('div')
+        .attr('id', 'genre_divider')
+        .style('position', 'absolute')
+        .style('top', '-20px')
+        .style('bottom', '0')
+        .style('width', '2px')
+        .style('background', 'black')
+        .style('right', ((canvas_width * 0.17) + (padding_width * 0.5)) + 'px');
 
     books = csvFile;
 
@@ -110,34 +184,6 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     }).then(process_data);
 
 
-    //CONTAINERS CREATION FUCNTION ----------------------------------------------------------------------------------------------------------------
-    function contentores(place, format, nome, pos, top, bottom, drt, esq, display, larg, alt, cor, fonte, cursor) {
-        let elem = place.append(format)
-
-        elem.attr('id', nome)
-            .style('position', pos)
-            .style('top', top)
-            .style('bottom', bottom)
-            .style('right', drt)
-            .style('left', esq)
-            .style('width', larg)
-            .style('height', alt)
-            .style('background-color', cor)
-            .style('cursor', cursor);
-
-        if (display == true) {
-            elem.style('display', 'flex')
-                .style('flex-direction', 'column')
-                .style("gap", gap + "px");
-        }
-
-        if (fonte == true) {
-            elem.style('font-family', "Poppins, sans-serif")
-                .style("font-size", `${0.9}vw`);
-        }
-
-        return elem
-    }
 
     // DATA PROCESSIGN ---------------------------------------------------------------
     function process_data(data) {
@@ -202,14 +248,35 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         });
 
         // create sort buttons
-        create_sort_buttons({ container: sort_buttons_container, padding_width, get_current_sort: () => current_sort, set_current_sort: (value) => current_sort = value,
-            redraw_interval: () => draw_interval(latest_books_in_interval, current_interval_label, current_sort), svg });
+        create_sort_buttons({
+            container: sort_buttons_container,
+            padding_width,
+            get_current_sort: () => current_sort,
+            set_current_sort: (value) => current_sort = value,
+            redraw_interval: () => draw_interval(latest_books_in_interval, current_interval_label, current_sort),
+            svg
+        });
 
         // create selection buttons
-        create_selection_buttons({ container: selection_buttons_container, padding_width, get_current_selection: () => current_selection });
+        create_selection_buttons({
+            container: selection_buttons_container,
+            padding_width,
+            get_current_selection: () => current_selection
+        });
 
         // create year buttons
-        create_year_buttons( valid_intervals, highlight_bar, year_buttons_container, year_tooltip, container_selector, draw_interval, canvas_width, padding_width, svg, yearElements );
+        create_year_buttons(
+            valid_intervals,
+            highlight_bar,
+            year_buttons_container,
+            year_tooltip,
+            container_selector,
+            draw_interval,
+            canvas_width,
+            padding_width,
+            svg,
+            yearElements
+        );
 
         // draw first interval by default
         draw_interval(valid_intervals[0].books, valid_intervals[0].label, current_sort);
@@ -306,14 +373,49 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
             update_visible_books_count();
 
             // apply current sort
-            apply_sort(latest_books_in_interval, interval_label, current_sort, original_books_order_by_interval);
+            apply_sort(
+                latest_books_in_interval,
+                interval_label,
+                current_sort,
+                original_books_order_by_interval
+            );
 
             // create genre buttons
-            create_genre_buttons( genre_buttons_container, all_genres, latest_books_in_interval, global_color_scale, selected_genres, update_visible_books_count, genre_stroke_colors, window, padding_width, svg, yearElements);
+            create_genre_buttons(
+                genre_buttons_container,
+                all_genres,
+                latest_books_in_interval,
+                global_color_scale,
+                selected_genres,
+                update_visible_books_count,
+                genre_stroke_colors,
+                window,
+                padding_width,
+                svg,
+                yearElements
+            );
 
             // draw sorted books
-            draw_books( svg, latest_books_in_interval, selected_genres, global_color_scale, padding_width, padding_height, bookshelf_width, shelf_height, canvas_height, 
-                books_container, scrollbar_container, gap, container_selector, spine_width, border, full_dataset, select_interval_by_year, book_tooltip );
+            draw_books(
+                svg,
+                latest_books_in_interval,
+                selected_genres,
+                global_color_scale,
+                padding_width,
+                padding_height,
+                bookshelf_width,
+                shelf_height,
+                canvas_height,
+                books_container,
+                scrollbar_container,
+                gap,
+                container_selector,
+                spine_width,
+                border,
+                full_dataset,
+                select_interval_by_year,
+                book_tooltip
+            );
 
             selected_genres.clear();
         }
