@@ -16,11 +16,12 @@ window.onload = function () {
     //EDITION BOOK
     edition_container = container(d3.select('main'), 'div');
     edition_spine = spine(edition_container, 'div', edition_width, '90vh', 0, 1, 'default', true);
+    edition_spine.style('bottom', '5px');
     edition_label = label(edition_spine, 'h3', '2025 EDITION', 'default');
 
     //INFO BOOK
     info_container = container(d3.select('main'), 'div');
-    info_spine = spine(info_container, 'div', info_width, '110vh', 0, 2, 'pointer', false);
+    info_spine = spine(info_container, 'div', info_width, `calc(100vh - 5px)`, 0, 2, 'pointer', false);
     info_label = label(info_spine, 'h3', 'INFO', 'pointer');
     mouse_effect(info_spine, '#8CE8FB', 'white');
 
@@ -38,13 +39,13 @@ window.onload = function () {
 
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
-    specific_spine = spine(specific_container, 'div', specific_width, '110vh', 0, 2, 'pointer', false);
+    specific_spine = spine(specific_container, 'div', specific_width, `calc(100vh - 5px)`, 0, 2, 'pointer', false);
     specific_label = label(specific_spine, 'h3', 'VISUALIZATION', 'pointer');
 
     //IMPORT DATA VISUALIZATION
     initializeBooksViz(specific_container, specific_width, border, 'books.csv');
     mouse_effect(specific_spine, '#B79FE9', 'white');
-    
+
     //TOGGLE SPECIFIC
     toggle(specific_spine, specific_open, [info_container, edition_container, specific_container],
         [`${window.innerWidth - (specific_width + info_width + border)}px`,
@@ -67,7 +68,7 @@ window.onload = function () {
 //RESPONSIVE WIDTHS
 function getWidths() {
     const total = window.innerWidth; // total window width
-    edition_width = total * 0.06; 
+    edition_width = total * 0.06;
     info_width = total * 0.05;
     specific_width = total * 0.07;
 }
@@ -76,13 +77,20 @@ function getWidths() {
 // allows  to update the position of the containers and flaps -> when the window is resized, its values ​​adapt
 function updatePositions() {
     //containers
-    edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`);
-    info_container.style('left', `${window.innerWidth - (specific_width + info_width + border)}px`);
-    specific_container.style('left', `${window.innerWidth - (specific_width + border)}px`);
+    edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width)}px`);
+    info_container.style('left', `${window.innerWidth - (specific_width + info_width)}px`);
+    info_container.style('height', '100vh');
+    info_container.style('bottom', '-20px');
+    specific_container.style('left', `${window.innerWidth - (specific_width)}px`);
+    specific_container.style('height', '100vh');
+    specific_container.style('bottom', '-20px');
+    
     //spines
     edition_spine.style('width', `${edition_width}px`);
     info_spine.style('width', `${info_width}px`);
+    info_spine.style('bottom', '20px');
     specific_spine.style('width', `${specific_width}px`);
+    specific_spine.style('bottom', '20px');
 }
 
 //BOOKS CONTAINERS
@@ -93,7 +101,7 @@ function container(selected, place) {
         .style('width', '100vw')
         .style('height', '100vh')
         .style('position', 'absolute')
-        .style('bottom', '-20px')
+        .style('bottom', '0')
         .style('background-color', 'white')
         .style('transition', 'left 0.9s');
 }
@@ -117,7 +125,7 @@ function spine(selected, place, larg, alt, move, index, cursor, roda,) {
     if (roda) {
         spine
         spine.style('transform', `rotate(9deg) translate(-14.3vh, 3vh)`)
-        .style('transform-origin', '100% 100%');
+            .style('transform-origin', '100% 100%');
     }
     return spine;
 }
@@ -146,7 +154,7 @@ function label(selected, place, texto, cursor) {
 function toggle(spine, open, containers, openValues, closedValues) {
     spine.on('click', function () {
         for (let i = 0; i < containers.length; i++) { // for all the existing containers
-            if (open) { 
+            if (open) {
                 containers[i].style('left', openValues[i]);
             } else {
                 containers[i].style('left', closedValues[i]);
