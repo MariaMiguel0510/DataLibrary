@@ -95,8 +95,8 @@ export function create_year_buttons(
             // move highlight bar for selection
             elements.highlight_bar
                 .style("opacity", 1)
-                .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
-                .style("top", (this.offsetTop - 3) + "px");
+                .style("left", (this.offsetLeft + this.offsetWidth / 2 - 5) + "px")
+                .style("top", (this.offsetTop - 3.5) + "px");
 
 
             svg.selectAll("*").remove(); // clear previous charts
@@ -114,8 +114,8 @@ export function create_year_buttons(
     };
 
     elements.highlight_bar
-        .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
-        .style("top", (first_button.offsetTop - 3) + "px");
+        .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 5) + "px")
+        .style("top", (first_button.offsetTop - 3.5) + "px");
 
     show_year_tooltip(first_button, first_interval.label);
 }
