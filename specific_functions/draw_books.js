@@ -106,7 +106,7 @@ export function draw_books(
         let y = padding_height * 2;
 
         shelves.forEach(row => {
-            let x = padding_width * 2;
+            let x = padding_width * 2.2;
 
             // for each book in the shelf, draw a rect to represent the book
             row.forEach(d => {
