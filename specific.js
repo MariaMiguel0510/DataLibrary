@@ -12,7 +12,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container, scrollbar_container, thumb;
     let year_elements = {}; // keeps the year tooltip & the highlight bar
     let selected_genres = new Set();
-    let full_dataset; 
+    let full_dataset;
 
     let current_interval_label = null;
     let sort_buttons_container;
@@ -21,6 +21,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     let latest_books_in_interval = [];
     let original_books_order_by_interval = {};
 
+    let view_mode_container, info_btn, selection_btn;//changing to legend and visualization buttons
 
     // INITIALIZATION
     // responsive dimensions
@@ -41,11 +42,38 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     books_container.style("overflow-x", "hidden")
         .style("overflow-y", "hidden");
 
-    //create selection buttons container
-    selection_buttons_container = container(container_selector, 'div', 'selection_buttons_container', 'absolute', `${canvas_height * 0.1}px`, null, (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, 'default');
+    //create view mode container
+    view_mode_container = container(container_selector, 'div', 'view_mode_container', 'absolute', `${canvas_height * 0.03}px`, null, (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, true, 'default');
+    view_mode_container.style('display', 'flex')
+        .style('flex-direction', 'row')
+        .style('gap', '10px');
 
-    // create sort buttons container
-    sort_buttons_container = container(container_selector, 'div', 'sort_buttons_container', 'absolute', null, (padding_height * 9) + "px", (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, 'default');
+    selection_btn = view_buttons(view_mode_container, "Selection", 1);
+    selection_btn.on('click', function (event, d) {
+        selection_buttons_container.style('display', 'flex')
+        sort_buttons_container.style('display', 'flex')
+        genre_buttons_container.style('display', 'flex')
+        d3.select("#books_count_label").style('display', 'flex')
+        selection_btn.style('opacity', '1');
+        info_btn.style('opacity', '0.5');
+    });
+
+    //create buttons from view mode container
+    info_btn = view_buttons(view_mode_container, "Info", 0.5);
+    info_btn.on('click', function () {
+        selection_buttons_container.style('display', 'none');
+        sort_buttons_container.style('display', 'none');
+        genre_buttons_container.style('display', 'none');
+        d3.select("#books_count_label").style('display', 'none');
+        selection_btn.style('opacity', '0.5');
+        info_btn.style('opacity', '1');
+    });
+
+    //create selection buttons container
+    selection_buttons_container = container(container_selector, 'div', 'selection_buttons_container', 'absolute', `${canvas_height * 0.134}px`, null, (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, false, 'default');
+
+    //create sort buttons container
+    sort_buttons_container = container(container_selector, 'div', 'sort_buttons_container', 'absolute', `${canvas_height * 0.207}px`, null, (padding_width * 0.5) + "px", null, true, `${(window.innerWidth * 0.17) - padding_width}px`, `${(window.innerHeight * 0.05)}px`, null, false, 'default');
 
     //new svg element
     svg = books_container
@@ -93,6 +121,24 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         }
     }).then(process_data);
 
+
+    //BUTTONS CREATION FUNCTION--------------------------------------------------------------------------
+    function view_buttons(place, label, opacity) {
+        return place.append('button')
+            .style('position', 'relative')
+            .style('width', `${((window.innerWidth * 0.17) - padding_width) / 2}px`)
+            .style('height', `${(window.innerHeight * 0.05)}px`)
+            .style('background', 'none')
+            .style('text-align', 'start')
+            .text(label)
+            .style('font-family', "Poppins, sans-serif")
+            .style("font-size", `${0.9}vw`)
+            .style('border', 'none')
+            .style('border-bottom', '2px solid black')
+            .style('cursor', 'pointer')
+            .style('padding', '0')
+            .style('opacity', opacity);
+    }
 
     //CONTAINERS CREATION FUNCTION ----------------------------------------------------
     function container(place, format, id, pos, top, bottom, right, left, display, width, height, color, cursor) {
