@@ -103,7 +103,7 @@ export function draw_books(
         svg.selectAll("*").remove();  // clean the svg before drawing the current page
 
         let shelves = pages[current_page];
-        let y = padding_height * 1.8;
+        let y = padding_height * 2;
 
         shelves.forEach(row => {
             let x = padding_width * 2;
