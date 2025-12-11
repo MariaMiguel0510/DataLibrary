@@ -39,7 +39,7 @@ window.onload = function () {
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
     specific_spine = spine(specific_container, 'div', specific_width, '110vh', 0, 2, 'pointer', false);
-    specific_label = label(specific_spine, 'h3', 'SPECIFIC', 'pointer');
+    specific_label = label(specific_spine, 'h3', 'VISUALIZATION', 'pointer');
 
     //IMPORT DATA VISUALIZATION
     initializeBooksViz(specific_container, specific_width, border, 'books.csv');
