@@ -55,7 +55,7 @@ export function create_selection_buttons({
         .style("background", "grey")
         .style("display", "none")
         .style("flex-direction", "column")
-        .style("z-index", 10);
+        .style("z-index", 12);
 
     function rebuild_menu() {
         menu.selectAll("*").remove();
