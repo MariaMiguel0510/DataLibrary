@@ -10,8 +10,7 @@ export function draw_books(
     bookshelf_width,
     shelf_height,
     canvas_height,
-    books_container, 
-    scrollbar_container,
+    books_container,
     gap,
     container_selector,
     spine_width,
@@ -20,133 +19,201 @@ export function draw_books(
     select_interval_by_year,
     book_tooltip
 ) {
-    const height_scale = d3.scaleLinear()
+    // scale book height according to rating
+    let height_scale = d3.scaleLinear()
         .domain([1, 5])
         .range([8, 60]);
 
+    // scale book width according to pages
     function width_scale(pages) {
         if (pages <= 200) return 12;
         else if (pages <= 400) return 17;
         else if (pages <= 600) return 22;
         else if (pages <= 800) return 27;
-        else return 32;
+        else return 45;
     }
 
+    // tooltip - function to break text
     function wrap_text(text, max_chars) {
-        let words = text.split(" ");
-        let lines = [];
+        let words = text.split(" "); // divide original text into words separated by spaces
+        let lines = []; // array to keep each final line
         let current_line = "";
 
         words.forEach(word => {
-            if ((current_line + word).length <= max_chars) {
-                current_line += word + " ";
+            if ((current_line + word).length <= max_chars) { // verify if the word still fits within the current line
+                current_line += word + " "; // add the word to current line
             } else {
-                lines.push(current_line.trim());
-                current_line = word + " ";
+                lines.push(current_line.trim()); // send the current line to the array
+                current_line = word + " "; // start a new line with the current word
             }
         });
 
-        if (current_line.length > 0) lines.push(current_line.trim());
+        // after the loop, if there's still text on the last line, add to the array
+        if (current_line.length > 0) {
+            lines.push(current_line.trim());
+        }
 
-        return lines.join("<br>");
+        return lines.join("<br>"); // join all lines
     }
 
-    let x_positions = [];
-    let y_positions = [];
-    let current_x = padding_width * 2;
-    let current_y = padding_height * 1.3;
-    let shelf_right_limit = padding_width + bookshelf_width - padding_width * 0.1;
+    let current_page = 0;
+    let pages = [];
 
-    book_data.forEach(d => {
-        let w = width_scale(d.pages);
-        if (current_x + w > shelf_right_limit) {
-            current_x = padding_width * 2;
-            current_y += shelf_height;
+    function prepare_pages() {
+        // filter books by genre (if none selected, use all)
+        let filtered_books = selected_genres.size === 0
+            ? book_data
+            : book_data.filter(d => selected_genres.has(d.genre));
+
+        // organize by shelves
+        let shelf_right_limit = padding_width + bookshelf_width - padding_width * 0.1;  // calc right limite for the shelves
+        let books_per_row = []; // array of row of books
+        let current_row = []; // current row of books
+        let current_x = padding_width * 2; // inicial x pos for the books
+
+        // organize books by lines considering the available space
+        filtered_books.forEach(d => {
+            let w = width_scale(d.pages); // book's width
+            if (current_x + w > shelf_right_limit) { // if the book doesnt fit in the current row
+                books_per_row.push(current_row);  // add the current row to the array
+                current_row = []; // start a new row
+                current_x = padding_width * 2; // reset x pos
+            }
+            current_row.push(d); // add book to the current row 
+            current_x += w + gap;
+        });
+        if (current_row.length > 0) books_per_row.push(current_row); // add the last line if it exists
+
+        // calc how many shelves fit the canvas
+        let max_shelves_per_page = Math.max(1, Math.floor(canvas_height / shelf_height) - 1);
+
+        pages = [];
+
+        // divide the shelves in pages, each page goes to the max_shelves_per_page
+        for (let i = 0; i < books_per_row.length; i += max_shelves_per_page) {
+            let page = books_per_row.slice(i, i + max_shelves_per_page);
+
+            // completes the page with empty shelves till it fills the page
+            while (page.length < max_shelves_per_page) page.push([]);
+            pages.push(page);
         }
-        x_positions.push(current_x);
-        y_positions.push(current_y);
-        current_x += w + gap;
-    });
+    }
 
-    let real_height = current_y + shelf_height + padding_height;
-    books_container.node().dataset.realHeight = real_height;
+    function render_page() {
+        svg.selectAll("*").remove();  // clean the svg before drawing the current page
 
-    let last_shelf_y = current_y;
-    let svg_height = Math.max(last_shelf_y + shelf_height, canvas_height);
-    svg.attr("height", svg_height);
+        let shelves = pages[current_page];
+        let y = padding_height * 1.8;
 
-    update_scrollbar_visibility(books_container, scrollbar_container);
+        shelves.forEach(row => {
+            let x = padding_width * 2;
 
-    let book_group = svg.append("g");
-    book_group.selectAll('rect')
-        .data(book_data)
-        .enter()
-        .append('rect')
-        .attr('x', (d, i) => x_positions[i])
-        .attr('y', (d, i) => y_positions[i] - height_scale(Math.floor(d.rating)))
-        .attr('width', d => width_scale(d.pages))
-        .attr('height', d => height_scale(Math.floor(d.rating)))
-        .attr('fill', d => color_scale(d.genre))
-        .style('cursor', 'pointer')
-        .on('click', function (event, d) {
-            event.stopPropagation(); // evita fechar imediatamente
-            if (selected_genres.size > 0 && !selected_genres.has(d.genre)) return;
-            //abre o closeup do livro específico
-            closeup_books(container_selector, spine_width, border, d, color_scale(d.genre), full_dataset, select_interval_by_year);
-        })
-        .on("mouseover", function (event, d) {
-            const opacity = +d3.select(this).style("opacity");
-            if (opacity === 0) return;
+            // for each book in the shelf, draw a rect to represent the book
+            row.forEach(d => {
+                let h = height_scale(Math.floor(d.rating)); // height according to rating
+                let w = width_scale(d.pages); // width according to pages
 
-            book_tooltip
-                .style("opacity", 1)
-                .html(`${wrap_text(d.name, 30)}`);
-        })
-        .on("mousemove", function (event) {
-            const opacity = +d3.select(this).style("opacity");
-            if (opacity === 0) return;
+                svg.append("rect")
+                    .attr("class", "book_rect")
+                    .attr("x", x)
+                    .attr("y", y - h)
+                    .attr("width", w)
+                    .attr("height", h)
+                    .attr("fill", color_scale(d.genre))
+                    .style("cursor", "pointer")
+                    // call the fuction to show the closeup
+                    .on("click", function (event) {
+                        event.stopPropagation();
+                        closeup_books(container_selector, spine_width, border, d, color_scale(d.genre), full_dataset, select_interval_by_year);
+                    })
+                    // show the tooltip with the name of the book
+                    .on("mouseover", function (event) {
+                        book_tooltip
+                            .style("opacity", 1)
+                            .html(`${wrap_text(d.name, 30)}`);
+                    })
+                    // move the tooltip with the mouse
+                    .on("mousemove", function (event) {
+                        book_tooltip
+                            .style("left", (event.pageX + 15) + "px")
+                            .style("top", (event.pageY - 20) + "px");
+                    })
+                    // hide the tooltip
+                    .on("mouseout", () => book_tooltip.style("opacity", 0));
 
-            book_tooltip
-                .style("left", (event.pageX + 15) + "px")
-                .style("top", (event.pageY - 20) + "px");
-        })
-        .on("mouseout", function () {
-            book_tooltip.style("opacity", 0);
+                x += w + gap;
+            });
+
+            // draw the shelf
+            let shelf_width = document.getElementById("year_buttons_container").offsetWidth;
+            svg.append("line")
+                .attr("x1", padding_width * 2 - 3)
+                .attr("x2", padding_width * 2 + shelf_width)
+                .attr("y1", y)
+                .attr("y2", y)
+                .attr("stroke", "black")
+                .attr("stroke-width", 3);
+
+            y += shelf_height; // next shelf
         });
 
-    // Draw shelves for visual effect
-    let shelf_levels = [];
-    let shelves_for_books = Math.ceil((current_y - padding_height) / shelf_height);
-    let shelves_for_canvas = Math.ceil(canvas_height / shelf_height);
-    let total_shelves = Math.max(shelves_for_canvas, shelves_for_books);
-
-    for (let i = 0; i < total_shelves; i++) {
-        shelf_levels.push(padding_height * 1.3 + (i * shelf_height));
+        update_arrows(); // update visibility/state of the nav arrows
     }
 
-    let shelf_width = document.getElementById("year_buttons_container").offsetWidth;
-    svg.append("g")
-        .attr("id", "shelves_group")
-        .selectAll("line")
-        .data(shelf_levels)
-        .enter()
-        .append("line")
-        .attr("x1", padding_width * 2 - 3)
-        .attr("x2", padding_width * 2 + shelf_width)
-        .attr("y1", d => d)
-        .attr("y2", d => d)
-        .attr("stroke", "black")
-        .attr("stroke-width", 3);
-}
+    // navegation arrows
+    d3.select("#left_page_arrow").remove();
+    d3.select("#right_page_arrow").remove();
 
-// update scrollbar's visibility
-function update_scrollbar_visibility(books_container, scrollbar_container) {
-    let real_height = parseFloat(books_container.node().dataset.realHeight);
-    let container_height = books_container.node().clientHeight;
+    let left_arrow = container_selector
+        .append("div")
+        .attr("id", "left_page_arrow")
+        .html("&#9664;") // arrow code
+        .style("position", "absolute")
+        .style("top", padding_height / 4 + "px")
+        .style("left", padding_width * 2 + "px")
+        .style("font-size", `${1.9}vw`)
+        .style("cursor", "pointer")
+        .style("user-select", "none")
+        .style("opacity", 0.3)
+        .on("click", () => {
+            if (current_page > 0) {
+                current_page--;
+                render_page();
+            }
+        });
 
-    if (real_height > container_height) {
-        scrollbar_container.style("display", "block");
-    } else {
-        scrollbar_container.style("display", "none");
+    let right_arrow = container_selector
+        .append("div")
+        .attr("id", "right_page_arrow")
+        .html("&#9654;") // arrow code
+        .style("position", "absolute")
+        .style("top", padding_height / 4 + "px")
+        .style("right", padding_width * 4.35 + "px")
+        .style("font-size", `${1.9}vw`)
+        .style("cursor", "pointer")
+        .style("user-select", "none")
+        .style("opacity", 0.3)
+        .on("click", () => {
+            if (current_page < pages.length - 1) {
+                current_page++;
+                render_page();
+            }
+        });
+
+    // function to update arrow opacity
+    function update_arrows() {
+        left_arrow.style("opacity", current_page === 0 ? 0.1 : 0.9);
+        right_arrow.style("opacity", current_page === pages.length - 1 ? 0.1 : 0.9);
     }
+
+    // prepare inicial pages
+    prepare_pages();
+    render_page();
+
+    // update when a genre is selected
+    return function update_for_genres() {
+        current_page = 0; // goes back to the 1st page
+        prepare_pages(); // rebuilds the pages with the updated filter
+        render_page(); // redraws
+    };
 }

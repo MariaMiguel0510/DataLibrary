@@ -76,7 +76,6 @@ export function create_year_buttons(
         .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
         .style("background-color", d => gray_scale(d.books.length))
         .style("cursor", "pointer")
-        // hover
         .on("mouseover", function (event, d) {
             show_year_tooltip(this, d.label);
         })
@@ -97,14 +96,12 @@ export function create_year_buttons(
             elements.highlight_bar
                 .style("opacity", 1)
                 .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4) + "px")
-                .style("top", (this.offsetTop - 3.5) + "px");
+                .style("top", (this.offsetTop - 3) + "px");
 
 
             svg.selectAll("*").remove(); // clear previous charts
             draw_interval(d.books, d.label); // draw selected interval
             show_year_tooltip(this, d.label); // permanent tooltip in the selected area
-            d3.select("#books_count_label") // update total books label
-                .text(`${d.books.length} books`);
         });
 
     // positioning the first position for the highlight_bar & tooltip
@@ -118,7 +115,7 @@ export function create_year_buttons(
 
     elements.highlight_bar
         .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 4) + "px")
-        .style("top", (first_button.offsetTop - 3.5) + "px");
+        .style("top", (first_button.offsetTop - 3) + "px");
 
     show_year_tooltip(first_button, first_interval.label);
 }

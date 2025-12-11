@@ -4,21 +4,25 @@ export function create_genre_buttons(
     filtered_books,
     color_scale,
     selected_genres,
-    update_visible_books_count,
     genre_stroke_colors,
     window,
     padding_width,
-    svg
+    update_books_display,
+    year_elements,
+    on_genre_change // callback
 ) {
+    
     genre_buttons_container.selectAll("button").remove();
 
-    // Set dos géneros presentes no intervalo
+    // set of genres that have books
     let genres_present = new Set(filtered_books.map(d => d.genre));
 
+    // create buttons
     genre_buttons_container.selectAll("button")
         .data(valid_genres)
         .enter()
         .append("button")
+        .attr("class", "genre_button")
         .text(d => d)
         .style("padding", "10px")
         .style("font-size", `${0.9}vw`)
@@ -37,20 +41,34 @@ export function create_genre_buttons(
         .style('height', `${(window.innerHeight * 0.05)}px`)
         .style("background-color", d => color_scale(d))
         .style("box-sizing", "border-box")
+        .each(function (genre) { // apply visual state after changing the interval
+            if (selected_genres.has(genre)) {
+                d3.select(this)
+                    .classed("selected", true)
+                    .style("border", `5px solid ${genre_stroke_colors[genre]}`);
+            }
+        })
         .on("click", function (event, genre) {
             if (!genres_present.has(genre)) return;
 
+            let btn = d3.select(this);
+
             if (selected_genres.has(genre)) {
                 selected_genres.delete(genre);
-                d3.select(this).style("border", `5px solid ${color_scale(genre)}`);
+                btn.classed("selected", false)
+                    .style("border", `5px solid ${color_scale(genre)}`);
             } else {
                 selected_genres.add(genre);
-                d3.select(this).style("border", `5px solid ${genre_stroke_colors[genre]}`);
+                btn.classed("selected", true)
+                    .style("border", `5px solid ${genre_stroke_colors[genre]}`);
             }
 
-            svg.selectAll("rect")
-                .style("opacity", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? 1 : 0)
-                .style("cursor", d => selected_genres.size === 0 || selected_genres.has(d.genre) ? "pointer" : "auto");
-            update_visible_books_count();
+            // update books by filtering by genre and reorganize pages
+            update_books_display();
+
+            // call the callback to update the count
+            if (typeof on_genre_change === "function") {
+                on_genre_change();
+            }
         });
 }
