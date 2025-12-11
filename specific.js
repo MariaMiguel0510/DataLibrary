@@ -282,22 +282,22 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         draw_interval(valid_intervals[0].books, valid_intervals[0].label, current_sort);
 
         // FUNCTION TO UPDATE YEAR INTERVAL 
-        function select_interval_by_year(newYear, previousYear) {
+        function select_interval_by_year(new_year, previous_year) {
 
             // determines the interval of the book currently in close-up
-            let intervalCurrent = valid_intervals.find(d => {
+            let interval_current = valid_intervals.find(d => {
                 let [start, end] = d.label.split("-").map(Number);
-                return previousYear >= start && previousYear <= end;
+                return previous_year >= start && previous_year <= end;
             });
 
             // determines the interval of the duplicate book
-            let intervalTarget = valid_intervals.find(d => {
+            let interval_target = valid_intervals.find(d => {
                 let [start, end] = d.label.split("-").map(Number);
-                return newYear >= start && newYear <= end;
+                return new_year >= start && new_year <= end;
             });
 
             // if its the SAME interval, doesnt reset the shelf
-            if (intervalCurrent === intervalTarget) {
+            if (interval_current === interval_target) {
                 return; // keeps background + filters + shelf intact
             }
 
@@ -305,11 +305,11 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
             selected_genres.clear(); // clean genres
 
             svg.selectAll("*").remove();  // clean current shelf
-            draw_interval(intervalTarget.books); // draw new shelf
+            draw_interval(interval_target.books); // draw new shelf
 
             // update the highlight bar position
             let buttons = year_buttons_container.selectAll("button").nodes();
-            let index = valid_intervals.indexOf(intervalTarget);
+            let index = valid_intervals.indexOf(interval_target);
 
             if (index >= 0) {
                 let btn = buttons[index];
