@@ -35,7 +35,7 @@ window.onload = function () {
     toggle(info_spine, info_open, [info_container, edition_container],
         [`${window.innerWidth - (specific_width + info_width + border)}px`,
         `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`],
-        [`${-border}px`, `calc(-${edition_width}px - ${border}px)`]);
+        ['0px', `calc(-${edition_width}px`]);
 
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
@@ -48,10 +48,10 @@ window.onload = function () {
 
     //TOGGLE SPECIFIC
     toggle(specific_spine, specific_open, [info_container, edition_container, specific_container],
-        [`${window.innerWidth - (specific_width + info_width + border)}px`,
-        `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`,
-        `${window.innerWidth - (specific_width + border)}px`],
-        [`${-info_width - border * 2}px`, `${-(edition_width + info_width) - border * 2}px`, `${-border}px`]);
+        [`${window.innerWidth - (specific_width + info_width + (border * 2))}px`,
+        `${window.innerWidth - (specific_width + info_width + edition_width + (border * 2))}px`,
+        `${window.innerWidth - (specific_width + (border * 2))}px`],
+        [`${-info_width}px`, `${-(edition_width + info_width)}px`, '0px']);
 
     //POSITION UPDATES
     updatePositions();
@@ -84,7 +84,7 @@ function updatePositions() {
     specific_container.style('left', `${window.innerWidth - (specific_width)}px`);
     specific_container.style('height', '100vh');
     specific_container.style('bottom', '-20px');
-    
+
     //spines
     edition_spine.style('width', `${edition_width}px`);
     info_spine.style('width', `${info_width}px`);
