@@ -1,4 +1,5 @@
 export function closeup_books(container_selector, spine_width, border, book, book_color, all_books, update_timeline) {
+    console.log("DATA COMPLETA DO LIVRO:", book.full_date);
 
     let closeup_container, closeup_container_book, closeup_book, closeup_book_height = '85vh';
     let closeup_close, closeup_btn, closeup_title, closeup_author, closeup_info;
@@ -47,13 +48,13 @@ export function closeup_books(container_selector, spine_width, border, book, boo
         .style('flex-direction', 'column')
         .style('position', 'relative');
 
-    //BOOK TITLE
+    // TITLE
     closeup_title = text(closeup_book, 'h4', book.name, '2vw', '600', '100%', '25vw', '0', '5vh', '10vh 3vw 0vh 3vw', null, 'break-word', 'anywhere', null);
     
-    //BOOK AUTHOR
+    // AUTHOR
     closeup_author = text(closeup_book, 'h4', book.author, '1.3vw', '400', null, '20vw', '0', '3.3vh', '5vh 3vw 0vw 3vw', null, null, null, null);
     
-    //BOOK PUBLISHER/GENRE/RATING/PAGES/LANGUAGE
+    // PUBLISHER/GENRE/RATING/PAGES/LANGUAGE
     let other_data = [`Publisher: ${book.publisher}`, `Genre: ${book.genre}`, `Average Rating: ${book.rating}`, `Number of Pages: ${book.pages}`, `Language: ${book.lang}`];
     closeup_info = closeup_book
         .append('div')
@@ -67,6 +68,35 @@ export function closeup_books(container_selector, spine_width, border, book, boo
         .each(function (d) {
             text(d3.select(this), null, d, '1vw', '400', null, '20vw', null, '1vh', null, null, 'break-word', null, null);
         });
+    
+    // FULL DATE OF PUBLICATION
+    let digits = book.full_date.replace(/-/g, ""); // "2002-04-08" → "20020408"  
+    console.log("DIGITOS PARA CODIGO DE BARRAS:", digits);  
+
+    // BARCODE
+    let barcode = closeup_book
+        .append("div")
+        .attr("id", "barcode")
+        .style('position', 'absolute')
+        .style('bottom', '7vh')
+        .style('right', '0vw')
+        .style("display", "flex")
+        .style("flex-direction", "row")
+        .style("gap", "0.5vw")
+        .style("padding", "3vh 3vw 0 3vw");    
+
+    let base_width = 1; // px
+
+    // Cria as 8 barras
+    digits.split("").forEach(d => {
+        let value = +d + 3;
+
+        barcode.append("div")
+            .style("height", "10vh")
+            .style("width", (base_width + value) + "px")
+            .style("background", "black")
+            .style("border-radius", "2px");
+    });
 
     // X ELEMENT
     closeup_close = closeup_book

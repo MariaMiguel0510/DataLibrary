@@ -112,6 +112,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
             name: d.Name,
             author: d.Author,
             date: +d.Publication_date.slice(0, 4),
+            full_date: d.Publication_date,
             rating: +d.av_Rating,
             lang: d.Language,
             pages: +d.Pages,
