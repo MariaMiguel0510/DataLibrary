@@ -161,16 +161,17 @@ export function draw_books(
                                 .node();
                             //draw the circle 
                             if (btn) {
+                                const circleSize = btn.offsetWidth * 0.2; // 10% da largura do botão
                                 d3.select(year_buttons_container.node())
                                     .append("div")
                                     .attr("class", "edition_circle")
                                     .style("position", "absolute")
-                                    .style("width", "8px")
-                                    .style("height", "8px")
+                                    .style("width", circleSize + "px")
+                                    .style("height", circleSize + "px")
                                     .style("border-radius", "50%")
                                     .style("background", color_scale(d.genre))
                                     .style("top", (btn.offsetTop + 35) + "px")
-                                    .style("left", (btn.offsetLeft + btn.offsetWidth / 2 - 4) + "px");
+                                    .style("left", (btn.offsetLeft + btn.offsetWidth / 2 - circleSize / 2) + "px");
                             }
                         });
 
