@@ -24,21 +24,21 @@ main {
 
 main>h1 {
     position: absolute;
-    font-size: 80px;
-    top: 50px;
+    font-size: 5.5vw;
+    top: 6vh;
     left: -3px;
 }
 
 h2 {
     position: absolute;
-    font-size: 20px;
-    top: 160px;
+    font-size: 1.5vw;
+    top: 20vh;
 }
 
 h3 {
     position: absolute;
     font-size: 1.1vw;
-    bottom: 50px;
+    bottom: 6vh;
 }
 
 /*PARTE DA INFO E CONTEXTO DO PROJETO*/
