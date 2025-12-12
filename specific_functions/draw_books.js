@@ -187,10 +187,15 @@ export function draw_books(
                         same_author_books.forEach(b => {
                             let book_interval = interval(b.date);
                             if (book_interval === author_interval) {
-                                // seleciona o retângulo correspondente e coloca preto
+
                                 svg.selectAll(".book_rect")
                                     .filter(d2 => d2.uid === b.uid)
-                                    .attr("fill", "black"); //.attr("fill", genre_stroke_colors[b.genre]); 
+                                    .each(function () {
+                                        let currentY = parseFloat(d3.select(this).attr("y"));
+                                        d3.select(this)
+                                            .attr("data-original-y", currentY)   // salva a posição original
+                                            .attr("y", currentY - 20);           // sobe 10px
+                                    });
                             }
                         });
                     })
@@ -204,11 +209,12 @@ export function draw_books(
                     .on("mouseout", function () {
                         book_tooltip.style("opacity", 0);
                         d3.selectAll(".edition_circle").remove();
-                        svg.selectAll(".book_rect")
-                            .each(function () {
-                                let original = d3.select(this).attr("data-original-fill");
-                                d3.select(this).attr("fill", original);
-                            });
+                        svg.selectAll(".book_rect").each(function () {
+                            let originalY = d3.select(this).attr("data-original-y");
+                            if (originalY !== null) {
+                                d3.select(this).attr("y", originalY);
+                            }
+                        });
                     });
                 x += w + gap;
             });
