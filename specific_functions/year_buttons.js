@@ -48,7 +48,7 @@ export function create_year_buttons(
         elements.year_tooltip
             .html(label)
             .style("opacity", 1)
-            .style("left", (rect.left - container_rect.left + rect.width / 2) + "px")
+            .style("left", (rect.left - container_rect.left + rect.width/2) + "px")
             .style("top", (rect.top - container_rect.top - 30) + "px")
             .style("transform", "translateX(-50%)");
     }
@@ -70,10 +70,10 @@ export function create_year_buttons(
         .append('button')
         .attr("class", "year-button")
         .html("&nbsp;") // button keeps its size but without text
-        .style('margin-right', '-2px')
-        .style("border", "2px solid black")
+        .style('margin-right', '0px')
+        .style("border", "2px solid #F6F6F6")
         .style('padding', `${canvas_width * 0.003}px`)
-        .style('width', `${(canvas_width - (3.8 * padding_width)) / valid_intervals.length}px`)
+        .style('width', `${(canvas_width - (4 * padding_width)) / valid_intervals.length}px`)
         .style("background-color", d => gray_scale(d.books.length))
         .style("cursor", "pointer")
         .on("mouseover", function (event, d) {
@@ -96,8 +96,8 @@ export function create_year_buttons(
             elements.highlight_bar
                 .style("opacity", 1)
                 .style("left", (this.offsetLeft + this.offsetWidth / 2 - 5) + "px")
-                .style("top", (this.offsetTop - 3.5) + "px");
-
+                .style("top", (this.offsetTop - 3.5) + "px")
+                .style("background-color", gray_scale(d.books.length));
 
             svg.selectAll("*").remove(); // clear previous charts
             draw_interval(d.books, d.label); // draw selected interval
@@ -115,7 +115,8 @@ export function create_year_buttons(
 
     elements.highlight_bar
         .style("left", (first_button.offsetLeft + first_button.offsetWidth / 2 - 5) + "px")
-        .style("top", (first_button.offsetTop - 3.5) + "px");
+        .style("top", (first_button.offsetTop - 3.5) + "px")
+        .style("background-color", gray_scale(first_interval.books.length));
 
     show_year_tooltip(first_button, first_interval.label);
 }

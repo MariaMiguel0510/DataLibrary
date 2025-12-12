@@ -8,6 +8,7 @@ body {
     height: 100vh;
     font-family: "Poppins", sans-serif;
     overflow: hidden;
+    background-color: #F6F6F6;
 }
 
 main {
