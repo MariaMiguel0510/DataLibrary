@@ -53,18 +53,20 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         sort_buttons_container.style('display', 'flex')
         genre_buttons_container.style('display', 'flex')
         d3.select("#books_count_label").style('display', 'flex')
-        selection_btn.style('opacity', '1');
+        info_image_container.style('display', 'none')
+        selection_btn.style('opacity', '1')
         info_btn.style('opacity', '0.3');
     });
 
     //create buttons from view mode container
     info_btn = view_buttons(view_mode_container, "Info", 0.3);
     info_btn.on('click', function () {
-        selection_buttons_container.style('display', 'none');
-        sort_buttons_container.style('display', 'none');
-        genre_buttons_container.style('display', 'none');
-        d3.select("#books_count_label").style('display', 'none');
-        selection_btn.style('opacity', '0.3');
+        selection_buttons_container.style('display', 'none')
+        sort_buttons_container.style('display', 'none')
+        genre_buttons_container.style('display', 'none')
+        d3.select("#books_count_label").style('display', 'none')
+        info_image_container.style('display', 'flex')
+        selection_btn.style('opacity', '0.3')
         info_btn.style('opacity', '1');
     });
 
@@ -93,6 +95,14 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
     //create genre container
     genre_buttons_container = container(container_selector, 'div', 'genre_buttons_container', 'absolute', null, (padding_height) + "px", (padding_width * 0.5) + "px", null, true, null, null, null, 'default')
+
+    // create info image container
+    info_image_container = container(container_selector, 'div', 'info_image_container', 'absolute', (padding_height) + "px", null, (padding_width * 0.5) + "px", null, true, null, null, null, 'default');
+    info_image_container.style("display", "none"); // hide the container
+    info_image_container.append("img") // add image
+        .attr("src", "info.png")
+        .style("width", padding_width * 2.3 + "px")
+        .style("height", "auto");
 
     // create books count label
     books_count_label = container(genre_buttons_container, 'div', 'books_count_label', null, null, null, null, null, false, null, null, null, 'auto')

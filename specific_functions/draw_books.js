@@ -30,10 +30,10 @@ export function draw_books(
     // scale book width according to pages
     function width_scale(pages) {
         if (pages <= 200) return 12;
-        else if (pages <= 400) return 17;
-        else if (pages <= 600) return 22;
-        else if (pages <= 800) return 27;
-        else return 45;
+        else if (pages <= 400) return 19;
+        else if (pages <= 600) return 27;
+        else if (pages <= 800) return 35;
+        else return 46;
     }
 
     // tooltip - function to break text
@@ -166,7 +166,7 @@ export function draw_books(
                                 .node();
                             //draw the circle 
                             if (btn) {
-                                const circleSize = btn.offsetWidth * 0.2; // 10% da largura do botão
+                                let circleSize = btn.offsetWidth * 0.2; // 10% da largura do botão
                                 d3.select(year_buttons_container.node())
                                     .append("div")
                                     .attr("class", "edition_circle")
@@ -190,7 +190,7 @@ export function draw_books(
                                 // seleciona o retângulo correspondente e coloca preto
                                 svg.selectAll(".book_rect")
                                     .filter(d2 => d2.uid === b.uid)
-                                    .attr("fill", genre_stroke_colors[b.genre]);
+                                    .attr("fill", "black"); //.attr("fill", genre_stroke_colors[b.genre]); 
                             }
                         });
                     })
