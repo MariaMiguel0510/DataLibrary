@@ -73,7 +73,7 @@ export function draw_books(
             : book_data.filter(d => selected_genres.has(d.genre));
 
         // organize by shelves
-        let shelf_right_limit = padding_width + bookshelf_width - padding_width * 0.4;  // calc right limite for the shelves
+        let shelf_right_limit = padding_width + bookshelf_width - padding_width * 0.1;  // calc right limite for the shelves
         let books_per_row = []; // array of row of books
         let current_row = []; // current row of books
         let current_x = padding_width * 2; // inicial x pos for the books
