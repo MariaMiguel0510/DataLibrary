@@ -1,4 +1,3 @@
-// main module (initializeBooksViz) — com a FIX aplicada em draw_interval
 import { create_genre_buttons } from "./specific_functions/genre_buttons.js";
 import { create_year_buttons } from "./specific_functions/year_buttons.js";
 import { draw_books } from "./specific_functions/draw_books.js";
@@ -9,7 +8,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container, scrollbar_container, thumb;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container;
     let year_elements = {}; // keeps the year tooltip & the highlight bar
     let selected_genres = new Set();
     let full_dataset;

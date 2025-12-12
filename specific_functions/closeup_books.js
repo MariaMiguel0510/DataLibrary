@@ -1,4 +1,4 @@
-export function closeup_books(container_selector, spine_width, border, book, book_color, all_books, update_timeline) {
+export function closeup_books(container_selector, spine_width, border, book, book_color, stroke_color, all_books, update_timeline) {
     console.log("DATA COMPLETA DO LIVRO:", book.full_date);
 
     let closeup_container, closeup_container_book, closeup_book, closeup_book_height = '85vh';
@@ -48,55 +48,78 @@ export function closeup_books(container_selector, spine_width, border, book, boo
         .style('flex-direction', 'column')
         .style('position', 'relative');
 
+    // FULL DATE OF PUBLICATION
+    let [year, month, day] = book.full_date.split("-");
+    let formatted_date = `${day}-${month}-${year}`; // new order: day-month-year
+    let digits = formatted_date.replace(/-/g, ""); // "2002-04-08" → "20020408" 
+    console.log("DIGITOS PARA CODIGO DE BARRAS:", digits);
+
+    // BARCODE
+    let barcode = closeup_book
+        .append("div")
+        .attr("id", "barcode")
+        .style("position", "absolute")
+        .style("top", "-3vh")
+        .style("left", "0")
+        .style("width", "100%")
+        .style("display", "flex")
+        .style("flex-direction", "row")
+        .style("gap", "10px")
+        .style("opacity", "0.2")
+        .style("padding", "3vh 0 0 0");
+
+
+    // valores 
+    let values = digits.split("").map(d => (+d * 4) + 6);
+
+    // soma dos valores
+    let totalValue = d3.sum(values);
+
+    // largura total disponível para o código de barras
+    let availableWidth = closeup_book.node().getBoundingClientRect().width;
+
+    // gap entre barras
+    let gap = 10;
+    let totalGap = gap * (values.length - 1);
+
+    // largura útil para as barras
+    let usableWidth = availableWidth - totalGap;
+
+    // cria as barras proporcionais
+    values.forEach((v, i) => {
+
+        // largura proporcional
+        let barWidth = (v / totalValue) * usableWidth;
+
+        barcode.append("div")
+            .style("height", closeup_book_height)
+            .style("width", `${barWidth}px`)
+            .style("background-color", stroke_color)
+            .style("margin-right", i < values.length - 1 ? `${gap}px` : "0px");
+    });
+
+
     // TITLE
-    closeup_title = text(closeup_book, 'h4', book.name, '2vw', '600', '100%', '25vw', '0', '5vh', '10vh 3vw 0vh 3vw', null, 'break-word', 'anywhere', null);
+    closeup_title = text(closeup_book, 'h4', book.name, '2vw', '600', '25vw', '0', '5vh', '10vh 3vw 0vh 3vw', null, 'break-word', 'anywhere', null);
     
     // AUTHOR
-    closeup_author = text(closeup_book, 'h4', book.author, '1.3vw', '400', null, '20vw', '0', '3.3vh', '5vh 3vw 0vw 3vw', null, null, null, null);
+    closeup_author = text(closeup_book, 'h4', book.author, '1.3vw', '400', '20vw', '0', '3.3vh', '5vh 3vw 0vw 3vw', null, null, null, null);
     
     // PUBLISHER/GENRE/RATING/PAGES/LANGUAGE
-    let other_data = [`Publisher: ${book.publisher}`, `Genre: ${book.genre}`, `Average Rating: ${book.rating}`, `Number of Pages: ${book.pages}`, `Language: ${book.lang}`];
+    let other_data = [`Publisher: ${book.publisher}`, `Publication date: ${formatted_date}`, `Genre: ${book.genre}`, `Average Rating: ${book.rating}`, `Number of Pages: ${book.pages}`, `Language: ${book.lang}`];
     closeup_info = closeup_book
         .append('div')
         .style('margin-top', 'auto')
-        .style('padding', '2vh 3vw 6vh 3vw');
+        .style('padding', '2vh 3vw 6vh 3vw')
+        .style('z-index', 5);
 
     closeup_info.selectAll('p')
         .data(other_data)
         .enter()
         .append('p')
         .each(function (d) {
-            text(d3.select(this), null, d, '1vw', '400', null, '20vw', null, '1vh', null, null, 'break-word', null, null);
+            text(d3.select(this), null, d, '1vw', '400', '20vw', null, '1vh', null, null, 'break-word', null, null);
         });
-    
-    // FULL DATE OF PUBLICATION
-    let digits = book.full_date.replace(/-/g, ""); // "2002-04-08" → "20020408"  
-    console.log("DIGITOS PARA CODIGO DE BARRAS:", digits);  
-
-    // BARCODE
-    let barcode = closeup_book
-        .append("div")
-        .attr("id", "barcode")
-        .style('position', 'absolute')
-        .style('bottom', '7vh')
-        .style('right', '0vw')
-        .style("display", "flex")
-        .style("flex-direction", "row")
-        .style("gap", "0.5vw")
-        .style("padding", "3vh 3vw 0 3vw");    
-
-    let base_width = 1; // px
-
-    // Cria as 8 barras
-    digits.split("").forEach(d => {
-        let value = +d + 3;
-
-        barcode.append("div")
-            .style("height", "10vh")
-            .style("width", (base_width + value) + "px")
-            .style("background", "black")
-            .style("border-radius", "2px");
-    });
 
     // X ELEMENT
     closeup_close = closeup_book
@@ -184,14 +207,14 @@ export function closeup_books(container_selector, spine_width, border, book, boo
                                     .style('height', `calc(${closeup_book_height} - 16vh)`)
                                     .style('padding', '10vh 11vw 0vh 3vw')
                             } else { //message indicating there is no cover
-                                cover_img = text(closeup_book, 'div', 'Cover not found', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
+                                cover_img = text(closeup_book, 'div', 'Cover not found', '2vw', '400', '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                             }
                         } catch (err) { // error message
                             console.error(err);
-                            cover_img = text(closeup_book, 'div', 'Error loading cover', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
+                            cover_img = text(closeup_book, 'div', 'Error loading cover', '2vw', '400', '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                         }
                     } else { // if the csv doesnt have the isbn
-                        cover_img = text(closeup_book, 'div', 'ISBN missing', '2vw', '400', null, '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
+                        cover_img = text(closeup_book, 'div', 'ISBN missing', '2vw', '400', '25vw', '0', null, '10vh 3vw 0vh 3vw', null, null, null, null);
                     }
                 }
             }
@@ -246,16 +269,17 @@ export function closeup_books(container_selector, spine_width, border, book, boo
                     });
 
                 //DUPLICATES TITLE
-                text(duplicates_books, 'p', dupBook.name, '0.9vw', '600', null, '5vw', '0', '1.8vh', '2vh 1vw 0vh 1vw', 'relative', 'break-word', 'break-word', '0');
+                text(duplicates_books, 'p', dupBook.name, '0.9vw', '600', '5vw', '0', '1.8vh', '2vh 1vw 0vh 1vw', 'relative', 'break-word', 'break-word', '0');
                 //DUPLICATES PUBLISHER
-                text(duplicates_books, 'p', dupBook.publisher, '0.8vw', '400', null, '5vw', '0', '1.8vh', '2vh 1vw 0vh 1vw', 'relative', 'break-word', 'break-word', '0');
+                text(duplicates_books, 'p', dupBook.publisher, '0.8vw', '400', '5vw', '0', '1.8vh', '2vh 1vw 0vh 1vw', 'relative', 'break-word', 'break-word', '0');
                 //DUPLICATES YEAR
-                text(duplicates_books, 'p', dupBook.date, '0.8vw', '400', null, 'auto', '0', '1em', '0vh 1vw 0vh 1vw', 'absolute', 'break-word', 'break-word', '2vh');
+                text(duplicates_books, 'p', dupBook.date, '0.8vw', '400', 'auto', '0', '1em', '0vh 1vw 0vh 1vw', 'absolute', 'break-word', 'break-word', '2vh');
             });
         }
     }
 
-    function text(place, format, conteudo, font_size, peso, max, larg, margem, entrelinha, paddng, pos, corte_1, corte_2, fundo) {
+    // place where its created / what is created / text 
+    function text(place, format, text, font_size, weight, width, margin, lineheight, padding, pos, overflow, break_word, bottom) {
         let elem = place;
 
         // if 'format' is defined, it creates the element inside the 'place' tag
@@ -263,18 +287,18 @@ export function closeup_books(container_selector, spine_width, border, book, boo
             elem = place.append(format);
         }
 
-        elem.text(conteudo)
+        elem.text(text)
             .style('font-size', font_size)
-            .style('font-weight', peso)
-            .style('max-width', max)
-            .style('width', larg)
-            .style('margin', margem)
-            .style('line-height', entrelinha)
-            .style('padding', paddng)
+            .style('font-weight', weight)
+            .style('width', width)
+            .style('margin', margin)
+            .style('line-height', lineheight)
+            .style('padding', padding)
             .style('position', pos)
-            .style('overflow-wrap', corte_1)
-            .style('word-wrap', corte_2)
-            .style('bottom', fundo);
+            .style('overflow-wrap', overflow) // break if it needs to 
+            .style('word-wrap', break_word) // break every word
+            .style('bottom', bottom)
+            .style('z-index', 5);
 
         return elem;
     }

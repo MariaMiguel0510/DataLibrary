@@ -129,7 +129,7 @@ export function draw_books(
                     // call the fuction to show the closeup
                     .on("click", function (event) {
                         event.stopPropagation();
-                        closeup_books(container_selector, spine_width, border, d, color_scale(d.genre), full_dataset, select_interval_by_year);
+                        closeup_books(container_selector, spine_width, border, d, color_scale(d.genre), genre_stroke_colors[d.genre], full_dataset, select_interval_by_year);
                     })
                     // show the tooltip with the name of the book
                     .on("mouseover", function (event) {
