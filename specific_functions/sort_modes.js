@@ -45,7 +45,7 @@ export function create_sort_buttons({
         .style('height', `${(window.innerHeight * 0.05)}px`)
         .style("cursor", "pointer")
         .style("border", "2px solid black")
-        .style("background", "white")
+        .style("background", "#F6F6F6")
         .style("display", "flex")
         .style("align-items", "center")
         .style("justify-content", "space-between");

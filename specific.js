@@ -54,17 +54,17 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         genre_buttons_container.style('display', 'flex')
         d3.select("#books_count_label").style('display', 'flex')
         selection_btn.style('opacity', '1');
-        info_btn.style('opacity', '0.5');
+        info_btn.style('opacity', '0.3');
     });
 
     //create buttons from view mode container
-    info_btn = view_buttons(view_mode_container, "Info", 0.5);
+    info_btn = view_buttons(view_mode_container, "Info", 0.3);
     info_btn.on('click', function () {
         selection_buttons_container.style('display', 'none');
         sort_buttons_container.style('display', 'none');
         genre_buttons_container.style('display', 'none');
         d3.select("#books_count_label").style('display', 'none');
-        selection_btn.style('opacity', '0.5');
+        selection_btn.style('opacity', '0.3');
         info_btn.style('opacity', '1');
     });
 

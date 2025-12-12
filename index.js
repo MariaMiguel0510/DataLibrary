@@ -23,7 +23,7 @@ window.onload = function () {
     info_container = container(d3.select('main'), 'div');
     info_spine = spine(info_container, 'div', info_width, `calc(100vh - 5px)`, 0, 2, 'pointer', false);
     info_label = label(info_spine, 'h3', 'INFO', 'pointer');
-    mouse_effect(info_spine, '#8CE8FB', 'white');
+    mouse_effect(info_spine, '#A3CCFF', '#F6F6F6');
 
     //SHOWS CONTEXT
     //selects the html template and inserts it into info_container
@@ -33,9 +33,9 @@ window.onload = function () {
 
     //TOGGLE INFO
     toggle(info_spine, info_open, [info_container, edition_container],
-        [`${window.innerWidth - (specific_width + info_width + border)}px`,
-        `${window.innerWidth - (specific_width + info_width + edition_width + border)}px`],
-        ['0px', `calc(-${edition_width}px`]);
+        [`${window.innerWidth - (specific_width + info_width + (border*3))}px`,
+        `${window.innerWidth - (specific_width + info_width + edition_width + (border*3))}px`],
+        ['0px', `calc(-${edition_width}px)`]);
 
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
@@ -44,13 +44,13 @@ window.onload = function () {
 
     //IMPORT DATA VISUALIZATION
     initializeBooksViz(specific_container, specific_width, border, 'books.csv');
-    mouse_effect(specific_spine, '#B79FE9', 'white');
+    mouse_effect(specific_spine, '#C688CB', '#F6F6F6');
 
     //TOGGLE SPECIFIC
     toggle(specific_spine, specific_open, [info_container, edition_container, specific_container],
-        [`${window.innerWidth - (specific_width + info_width + (border * 2))}px`,
-        `${window.innerWidth - (specific_width + info_width + edition_width + (border * 2))}px`,
-        `${window.innerWidth - (specific_width + (border * 2))}px`],
+        [`${window.innerWidth - (specific_width + info_width + (border*3))}px`,
+        `${window.innerWidth - (specific_width + info_width + edition_width + (border*3))}px`,
+        `${window.innerWidth - (specific_width + (border*3))}px`],
         [`${-info_width}px`, `${-(edition_width + info_width)}px`, '0px']);
 
     //POSITION UPDATES
@@ -74,17 +74,17 @@ function getWidths() {
 }
 
 //UPDATE CONTAINERS AND SPINES
-// allows  to update the position of the containers and flaps -> when the window is resized, its values ​​adapt
+//allows  to update the position of the containers and flaps -> when the window is resized, its values ​​adapt
 function updatePositions() {
     //containers
-    edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width)}px`);
-    info_container.style('left', `${window.innerWidth - (specific_width + info_width)}px`);
+    edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width + (border*3))}px`);
+    info_container.style('left', `${window.innerWidth - (specific_width + info_width + (border*3))}px`);
     info_container.style('height', '100vh');
     info_container.style('bottom', '-20px');
-    specific_container.style('left', `${window.innerWidth - (specific_width)}px`);
+    specific_container.style('left', `${window.innerWidth - (specific_width + (border*2))}px`);
     specific_container.style('height', '100vh');
     specific_container.style('bottom', '-20px');
-
+    
     //spines
     edition_spine.style('width', `${edition_width}px`);
     info_spine.style('width', `${info_width}px`);
@@ -102,7 +102,7 @@ function container(selected, place) {
         .style('height', '100vh')
         .style('position', 'absolute')
         .style('bottom', '0')
-        .style('background-color', 'white')
+        .style('background-color', '#F6F6F6')
         .style('transition', 'left 0.9s');
 }
 
@@ -118,7 +118,7 @@ function spine(selected, place, larg, alt, move, index, cursor, roda,) {
         .style('position', 'absolute')
         .style('bottom', '0px')
         .style('border', `${border}px solid black`)
-        .style('background-color', 'white')
+        .style('background-color', '#F6F6F6')
         .style('cursor', cursor)
         .style('z-index', 10);
 

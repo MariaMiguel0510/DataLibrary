@@ -243,7 +243,7 @@ export function draw_books(
         .style("font-size", `${1.9}vw`)
         .style("cursor", "pointer")
         .style("user-select", "none")
-        .style("opacity", 0.3)
+        .style("opacity", 0.2)
         .on("click", () => {
             if (current_page > 0) {
                 current_page--;
@@ -261,7 +261,7 @@ export function draw_books(
         .style("font-size", `${1.9}vw`)
         .style("cursor", "pointer")
         .style("user-select", "none")
-        .style("opacity", 0.3)
+        .style("opacity", 0.2)
         .on("click", () => {
             if (current_page < pages.length - 1) {
                 current_page++;
@@ -271,8 +271,8 @@ export function draw_books(
 
     // function to update arrow opacity
     function update_arrows() {
-        left_arrow.style("opacity", current_page === 0 ? 0.1 : 0.9);
-        right_arrow.style("opacity", current_page === pages.length - 1 ? 0.1 : 0.9);
+        left_arrow.style("opacity", current_page === 0 ? 0.2 : 0.9);
+        right_arrow.style("opacity", current_page === pages.length - 1 ? 0.2 : 0.9);
     }
 
     // prepare inicial pages
