@@ -15,9 +15,12 @@ export function draw_books(
     container_selector,
     spine_width,
     border,
+    genre_stroke_colors,
     full_dataset,
     select_interval_by_year,
-    book_tooltip
+    book_tooltip,
+    interval,
+    year_buttons_container
 ) {
     // scale book height according to rating
     let height_scale = d3.scaleLinear()
@@ -131,6 +134,43 @@ export function draw_books(
                         book_tooltip
                             .style("opacity", 1)
                             .html(`${wrap_text(d.name, 30)}`);
+
+                        //SHOWS CIRCLES FOR NEW EDITIONS----------------------------------------
+                        //remove all the previous existing circles
+                        d3.selectAll(".edition_circle").remove();
+                        let duplicates = full_dataset.filter(ed => ed.name === d.name && ed.author === d.author);
+
+                        //only shows the selected year if there are many editions
+                        duplicates = duplicates.filter(ed => {
+                            if (ed.date === d.date) {
+                                //count how many books with other editions exist
+                                let count_same_year = full_dataset.filter(x => x.name === d.name && x.author === d.author && x.date === d.date).length;
+                                return count_same_year > 1;
+                            }
+                            return true;
+                        });
+
+                        duplicates.forEach(edition => {
+                            let year_interval = interval(edition.date);
+
+                            //find the corresponding button
+                            let btn = year_buttons_container.selectAll("button")
+                                .filter(b => b.label === year_interval)
+                                .node();
+                            //draw the circle 
+                            if (btn) {
+                                d3.select(year_buttons_container.node())
+                                    .append("div")
+                                    .attr("class", "edition_circle")
+                                    .style("position", "absolute")
+                                    .style("width", "8px")
+                                    .style("height", "8px")
+                                    .style("border-radius", "50%")
+                                    .style("background", color_scale(d.genre))
+                                    .style("top", (btn.offsetTop + 35) + "px")
+                                    .style("left", (btn.offsetLeft + btn.offsetWidth / 2 - 4) + "px");
+                            }
+                        });
                     })
                     // move the tooltip with the mouse
                     .on("mousemove", function (event) {

@@ -370,9 +370,12 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
                 container_selector,
                 spine_width,
                 border,
+                genre_stroke_colors,
                 full_dataset,
                 select_interval_by_year,
-                book_tooltip
+                book_tooltip,
+                interval,
+                year_buttons_container
             );
 
             // callback to update book count and filter books, triggered by the genre buttons
