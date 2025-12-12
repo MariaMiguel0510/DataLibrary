@@ -69,7 +69,7 @@ export function draw_books(
             : book_data.filter(d => selected_genres.has(d.genre));
 
         // organize by shelves
-        let shelf_right_limit = padding_width + bookshelf_width - padding_width * 0.1;  // calc right limite for the shelves
+        let shelf_right_limit = padding_width + bookshelf_width - padding_width * 0.4;  // calc right limite for the shelves
         let books_per_row = []; // array of row of books
         let current_row = []; // current row of books
         let current_x = padding_width * 2; // inicial x pos for the books
@@ -117,12 +117,14 @@ export function draw_books(
                 let w = width_scale(d.pages); // width according to pages
 
                 svg.append("rect")
+                    .datum(d)
                     .attr("class", "book_rect")
                     .attr("x", x)
                     .attr("y", y - h)
                     .attr("width", w)
                     .attr("height", h)
                     .attr("fill", color_scale(d.genre))
+                    .attr("data-original-fill", color_scale(d.genre))
                     .style("cursor", "pointer")
                     // call the fuction to show the closeup
                     .on("click", function (event) {
@@ -171,6 +173,20 @@ export function draw_books(
                                     .style("left", (btn.offsetLeft + btn.offsetWidth / 2 - 4) + "px");
                             }
                         });
+
+                        //SHOWS BOOKS WITH THE SAME AUTHORS
+                        let same_author_books = book_data.filter(b => b.author === d.author && b.uid !== d.uid);
+                        let author_interval = interval(+d.date);
+
+                        same_author_books.forEach(b => {
+                            let book_interval = interval(b.date);
+                            if (book_interval === author_interval) {
+                                // seleciona o retângulo correspondente e coloca preto
+                                svg.selectAll(".book_rect")
+                                    .filter(d2 => d2.uid === b.uid)
+                                    .attr("fill", genre_stroke_colors[b.genre]);
+                            }
+                        });
                     })
                     // move the tooltip with the mouse
                     .on("mousemove", function (event) {
@@ -179,8 +195,15 @@ export function draw_books(
                             .style("top", (event.pageY - 20) + "px");
                     })
                     // hide the tooltip
-                    .on("mouseout", () => book_tooltip.style("opacity", 0));
-
+                    .on("mouseout", function () {
+                        book_tooltip.style("opacity", 0);
+                        d3.selectAll(".edition_circle").remove();
+                        svg.selectAll(".book_rect")
+                            .each(function () {
+                                let original = d3.select(this).attr("data-original-fill");
+                                d3.select(this).attr("fill", original);
+                            });
+                    });
                 x += w + gap;
             });
 
