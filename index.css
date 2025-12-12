@@ -41,6 +41,32 @@ h3 {
     bottom: 6vh;
 }
 
+#data_library {
+    position: absolute;
+    top: 6vh;
+    bottom: 6vh;
+    left: 80px;
+    display: flex;
+    flex-direction: column;
+}
+
+#data_library h1 {
+    font-size: 5.5vw;
+    margin: 0;
+}
+
+#data_library h2 {
+    font-size: 1.5vw;
+    margin: 0;
+    top: 15vh;
+}
+
+#data_library h3 {
+    font-size: 1.1vw;
+    margin: 0;
+    bottom: 2vh;
+}
+
 /*PARTE DA INFO E CONTEXTO DO PROJETO*/
 #context_container{
     position: relative;
