@@ -8,7 +8,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
     let books;
     let canvas_width, canvas_height, padding_width, padding_height, bookshelf_width, gap, shelf_height;
-    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container;
+    let svg, year_buttons_container, year_tooltip, highlight_bar, genre_buttons_container, info_image_container, genre_divider, books_container, books_count_label, book_tooltip, selection_buttons_container;
     let year_elements = {}; // keeps the year tooltip & the highlight bar
     let selected_genres = new Set();
     let full_dataset;
