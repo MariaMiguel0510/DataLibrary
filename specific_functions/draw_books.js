@@ -62,6 +62,10 @@ export function draw_books(
     let current_page = 0;
     let pages = [];
 
+    // DOESNT DRAW ANYTHING
+    // filters the books according to selected genres
+    // distributes books to shelves
+    // divides the shelves in pages
     function prepare_pages() {
         // filter books by genre (if none selected, use all)
         let filtered_books = selected_genres.size === 0
@@ -102,6 +106,7 @@ export function draw_books(
         }
     }
 
+    // DRAWS THE SVG ACCORDING TO THE DATA IN PREPARE_PAGES()
     function render_page() {
         svg.selectAll("*").remove();  // clean the svg before drawing the current page
 
