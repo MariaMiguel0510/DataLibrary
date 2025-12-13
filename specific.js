@@ -229,7 +229,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
         // convert to array
         let all_intervals = Array.from(group_interval);
 
-        // FINAL FILTER: only intervals with >=10 books AFTER all internal filters
+        // FINAL FILTER: only intervals with >=8 books AFTER all internal filters
         let valid_intervals = all_intervals
             .map(([label, books]) => {
                 return {
@@ -237,7 +237,10 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
                     books: filter_books_inside_interval(books)
                 };
             })
-            .filter(d => d.books.length >= 10);
+            .filter(d => {
+                let start_year = +d.label.split('-')[0];
+                return start_year >= 1968 && d.books.length >= 5;
+            });
 
         // sort by year
         valid_intervals.sort((a, b) => {
