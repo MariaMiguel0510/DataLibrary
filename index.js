@@ -19,9 +19,10 @@ window.onload = function () {
 
     //RANDOM BOOK
     random_book_container = container(d3.select('main'), 'div');
-    random_book_spine = spine(random_book_container, 'div', random_book_width, '90vh', 0, 1, 'pointer', true, `rotate(13deg) translate(-20.6vh, 5.7vh)`);
+    random_book_spine = spine(random_book_container, 'div', random_book_width, '90vh', 0, 1, 'pointer', true, `rotate(13deg) translate(-20.8vh, 5.7vh)`);
     random_book_label = label(random_book_spine, 'h3', 'RANDOM BOOK TITLE', 'pointer');
     start_random_book(random_book_label);
+    mouse_effect(random_book_spine, '#A3CCFF', '#F6F6F6');
 
     function start_random_book(label_selection, max_length = 25) {
 
@@ -31,8 +32,19 @@ window.onload = function () {
                 clearInterval(wait_for_data);
 
                 function update_random_book() {
-                    current_random_book = books_dataset[Math.floor(Math.random() * books_dataset.length)];
-                    label_selection.text(current_random_book.name.toUpperCase().slice(0, max_length));
+                    let full_text = books_dataset[Math.floor(Math.random() * books_dataset.length)].name.toUpperCase();
+
+                    if (full_text.length <= max_length) {
+                        label_selection.text(full_text);
+                    } else {
+                        let truncated = full_text.slice(0, max_length);
+                        // removes the last incomplete word
+                        let last_space_index = truncated.lastIndexOf(" ");
+                        if (last_space_index > 0) {
+                            truncated = truncated.slice(0, last_space_index);
+                        }
+                        label_selection.text(truncated);
+                    }
                 }
 
                 update_random_book();
@@ -50,7 +62,7 @@ window.onload = function () {
     info_container = container(d3.select('main'), 'div');
     info_spine = spine(info_container, 'div', info_width, `calc(100vh - 5px)`, 0, 2, 'pointer', false, null);
     info_label = label(info_spine, 'h3', 'INFO', 'pointer');
-    mouse_effect(info_spine, '#A3CCFF', '#F6F6F6');
+    mouse_effect(info_spine, '#FF9D52', '#F6F6F6');
 
     //SHOWS CONTEXT
     //selects the html template and inserts it into info_container
@@ -103,7 +115,6 @@ window.onload = function () {
 
         // draw the same interval as the book
         select_interval_from_outside(current_random_book.date);
-
         closeup_books(specific_container, specific_width, border, current_random_book, '#C688CB', '#000', books_dataset, null);
     });
 

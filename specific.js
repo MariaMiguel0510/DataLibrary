@@ -104,7 +104,8 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     info_image_container.append("img") // add image
         .attr("src", "info.png")
         .style("width", padding_width * 2.3 + "px")
-        .style("height", "auto");
+        .style("height", "auto")
+        .style("max-height", "70vh");
 
     // create books count label
     books_count_label = container(genre_buttons_container, 'div', 'books_count_label', null, null, null, null, null, false, null, null, null, 'auto')
