@@ -1,10 +1,12 @@
-import { initializeBooksViz } from './specific.js';
+import { initializeBooksViz, books_dataset, select_interval_from_outside } from './specific.js';
+import { closeup_books } from './specific_functions/closeup_books.js';
+
 
 let edition_width, edition_container, edition_spine, edition_label;
 let info_width, info_container, info_spine, info_label, info_text;
 let specific_width, specific_container, specific_spine, specific_label;
 let random_book_width, random_book_container, random_book_spine, random_book_label;
-let current_random_title;
+let current_random_book = null;
 let info_open = false; // info initially closed 
 let specific_open = false; // specific initially closed 
 let border = 3; // thickness of book border
@@ -17,9 +19,27 @@ window.onload = function () {
 
     //RANDOM BOOK
     random_book_container = container(d3.select('main'), 'div');
-    random_book_spine = spine(random_book_container, 'div', random_book_width, '90vh', 0, 1, 'pointer', true, `rotate(16deg) translate(-25.4vh, 8.2vh)`);
+    random_book_spine = spine(random_book_container, 'div', random_book_width, '90vh', 0, 1, 'pointer', true, `rotate(13deg) translate(-20.6vh, 5.7vh)`);
     random_book_label = label(random_book_spine, 'h3', 'RANDOM BOOK TITLE', 'pointer');
-    startRandomBookTitles(random_book_label, 'books.csv', 25, (title) => { current_random_title = title; });
+    start_random_book(random_book_label);
+
+    function start_random_book(label_selection, max_length = 25) {
+
+        // waits till the data is loaded
+        let wait_for_data = setInterval(() => {
+            if (books_dataset && books_dataset.length > 0) {
+                clearInterval(wait_for_data);
+
+                function update_random_book() {
+                    current_random_book = books_dataset[Math.floor(Math.random() * books_dataset.length)];
+                    label_selection.text(current_random_book.name.toUpperCase().slice(0, max_length));
+                }
+
+                update_random_book();
+                setInterval(update_random_book, 2000);
+            }
+        }, 100);
+    }
 
     //EDITION BOOK
     edition_container = container(d3.select('main'), 'div');
@@ -39,11 +59,15 @@ window.onload = function () {
     info_container.node().appendChild(info_text);
 
     //TOGGLE INFO
-    toggle(info_spine, info_open, [info_container, edition_container, random_book_container],
+    toggle(info_spine, () => info_open, (v) => info_open = v,
+        [info_container, edition_container, random_book_container],
         [`${window.innerWidth - (specific_width + info_width + (border * 3))}px`,
         `${window.innerWidth - (specific_width + info_width + edition_width + (border * 3))}px`,
         `${window.innerWidth - (specific_width + info_width + edition_width + random_book_width + (border * 3))}px`],
-        ['0px', `calc(-${edition_width}px)`, `calc(-${edition_width + random_book_width}px)`]);
+        ['0px',
+        `calc(-${edition_width}px)`,
+        `calc(-${edition_width + random_book_width}px)`]
+    );
 
     //SPECIFIC BOOK
     specific_container = container(d3.select('main'), 'div');
@@ -55,22 +79,44 @@ window.onload = function () {
     mouse_effect(specific_spine, '#C688CB', '#F6F6F6');
 
     //TOGGLE SPECIFIC
-    toggle(specific_spine, specific_open, [info_container, edition_container, specific_container, random_book_container],
+    toggle(specific_spine, () => specific_open, (v) => specific_open = v,
+        [info_container, edition_container, specific_container, random_book_container],
         [`${window.innerWidth - (specific_width + info_width + (border * 3))}px`,
         `${window.innerWidth - (specific_width + info_width + edition_width + (border * 3))}px`,
         `${window.innerWidth - (specific_width + (border * 3))}px`,
         `${window.innerWidth - (specific_width + info_width + edition_width + random_book_width + (border * 3))}px`],
-        [`${-info_width}px`, `calc(-${edition_width + info_width}px)`, '0px', `calc(-${random_book_width + edition_width + info_width}px)`]);
+        [`${-info_width}px`,
+        `calc(-${edition_width + info_width}px)`,
+        '0px',
+        `calc(-${random_book_width + edition_width + info_width}px)`]
+    );
+
+    // OPEN CLOSEUP BOOK FOR THE RANDOM BOOK
+    random_book_spine.on('click', (event) => {
+        event.stopPropagation();
+        if (!current_random_book) return;
+
+        // open visualization
+        if (!specific_open) {
+            specific_spine.dispatch('click');
+        }
+
+        // draw the same interval as the book
+        select_interval_from_outside(current_random_book.date);
+
+        closeup_books(specific_container, specific_width, border, current_random_book, '#C688CB', '#000', books_dataset, null);
+    });
+
 
     //POSITION UPDATES
-    updatePositions();
+    update_positions();
 
     //WINDOW RESIZE
     // allows to resize the values ​​of the containers and tabs
     // and their respective positions depending on the window width
     window.addEventListener('resize', () => {
         getWidths();
-        updatePositions();
+        update_positions();
     });
 };
 
@@ -85,7 +131,7 @@ function getWidths() {
 
 //UPDATE CONTAINERS AND SPINES
 //allows  to update the position of the containers and flaps -> when the window is resized, its values ​​adapt
-function updatePositions() {
+function update_positions() {
     //containers
     edition_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width + (border * 3))}px`);
     random_book_container.style('left', `${window.innerWidth - (specific_width + info_width + edition_width + random_book_width + (border * 3))}px`);
@@ -106,7 +152,7 @@ function updatePositions() {
 }
 
 //BOOKS CONTAINERS
-//local selecionado, o que cria, deslocamento
+//place where its created, what it created, movement
 function container(selected, place) {
     return selected
         .append(place)
@@ -162,47 +208,17 @@ function label(selected, place, texto, cursor) {
         .style('cursor', cursor);
 }
 
-
-//RANDOM TITLES
-function startRandomBookTitles(labelSelection, csvFile, maxLength, callback) {
-    d3.csv(csvFile).then(data => {
-        let titles = data
-            .map(d => d.Name)//gets the title
-            .filter(d => d && d.trim() !== "");//excludes null values
-
-        if (titles.length === 0) return;//in case of inexisting title stops
-
-        function updateTitle() {
-            let randomTitle = titles[Math.floor(Math.random() * titles.length)];
-
-            labelSelection.text(
-                randomTitle
-                    .toUpperCase()//change all the title to uppercase
-                    .slice(0, maxLength)//max of caracters shown
-            );
-            if (callback) callback(randomTitle);
-        }
-
-        //inicial title
-        updateTitle();
-        //change title every 2 seconds
-        setInterval(updateTitle, 2000);
-    });
-}
-
 //OPENING TOGGLE
 //elemento de click, contentores a mover, valores pos abertura, valores pos inicial)
-function toggle(spine, open, containers, openValues, closedValues) {
+function toggle(spine, getOpen, setOpen, containers, openValues, closedValues) {
     spine.on('click', function () {
-        for (let i = 0; i < containers.length; i++) { // for all the existing containers
-            if (open) {
-                containers[i].style('left', openValues[i]);
-            } else {
-                containers[i].style('left', closedValues[i]);
-            }
+        const open = getOpen();
+
+        for (let i = 0; i < containers.length; i++) {
+            containers[i].style('left', open ? openValues[i] : closedValues[i]);
         }
 
-        open = !open; // inverts the movement
+        setOpen(!open);
     });
 }
 

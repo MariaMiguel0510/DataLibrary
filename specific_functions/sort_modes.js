@@ -1,5 +1,5 @@
 export function apply_sort(books, interval_label, current_sort, original_books_order_by_interval) {
-    if (current_sort === "chrono") {
+    if (current_sort === "a_to_z") {
         let map = new Map(original_books_order_by_interval[interval_label].map((uid, i) => [uid, i]));
         books.sort((a, b) => d3.ascending(map.get(a.uid), map.get(b.uid)));
     }
@@ -25,7 +25,7 @@ export function create_sort_buttons({
     container.selectAll("*").remove();
 
     let sort_modes = [
-        { id: "chrono", label: "Chronologically" },
+        { id: "a_to_z", label: "A to Z" },
         { id: "rating", label: "Rating" },
         { id: "pages", label: "Pages" }
     ];
@@ -52,7 +52,7 @@ export function create_sort_buttons({
 
     main_button.append("span")
         .attr("id", "sort_main_label")
-        .text("Chronologically");
+        .text("A to Z");
 
     main_button.append("span")
         .attr("id", "selection_arrow")

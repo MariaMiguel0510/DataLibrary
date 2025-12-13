@@ -95,7 +95,7 @@ export function create_year_buttons(
             // move highlight bar for selection
             elements.highlight_bar
                 .style("opacity", 1)
-                .style("left", (this.offsetLeft + this.offsetWidth / 2 - 5) + "px")
+                .style("left", (this.offsetLeft + this.offsetWidth / 2 - 4.5) + "px")
                 .style("top", (this.offsetTop - 3.5) + "px")
                 .style("background-color", gray_scale(d.books.length));
 

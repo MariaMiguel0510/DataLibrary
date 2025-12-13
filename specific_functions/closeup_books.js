@@ -1,5 +1,4 @@
 export function closeup_books(container_selector, spine_width, border, book, book_color, stroke_color, all_books, update_timeline) {
-    console.log("DATA COMPLETA DO LIVRO:", book.full_date);
 
     let closeup_container, closeup_container_book, closeup_book, closeup_book_height = '85vh';
     let closeup_close, closeup_btn, closeup_title, closeup_author, closeup_info;
@@ -23,7 +22,7 @@ export function closeup_books(container_selector, spine_width, border, book, boo
             .style("z-index", 3);
     }
 
-    // remove upen close-ups
+    // remove open close-ups
     closeup_container.select('#closeup_container_book').remove();
 
     // container with the close-up book 
@@ -69,31 +68,22 @@ export function closeup_books(container_selector, spine_width, border, book, boo
         .style("padding", "3vh 0 0 0");
 
 
-    // valores 
-    let values = digits.split("").map(d => (+d * 4) + 6);
+    let values = digits.split("").map(d => (+d * 4) + 6); // values 
+    let totalValue = d3.sum(values);  // sum of values
+    let availableWidth = closeup_book.node().getBoundingClientRect().width; // total width available for the barcode
 
-    // soma dos valores
-    let totalValue = d3.sum(values);
-
-    // largura total disponível para o código de barras
-    let availableWidth = closeup_book.node().getBoundingClientRect().width;
-
-    // gap entre barras
+    // gap between bars
     let gap = 10;
-    let totalGap = gap * (values.length - 1);
+    let total_gap = gap * (values.length - 1);
 
-    // largura útil para as barras
-    let usableWidth = availableWidth - totalGap;
+    let usable_width = availableWidth - total_gap; // width for the bars
 
-    // cria as barras proporcionais
     values.forEach((v, i) => {
-
-        // largura proporcional
-        let barWidth = (v / totalValue) * usableWidth;
-
+        // proportional width
+        let bar_width = (v / totalValue) * usable_width;
         barcode.append("div")
             .style("height", closeup_book_height)
-            .style("width", `${barWidth}px`)
+            .style("width", `${bar_width}px`)
             .style("background-color", stroke_color)
             .style("margin-right", i < values.length - 1 ? `${gap}px` : "0px");
     });
@@ -111,6 +101,7 @@ export function closeup_books(container_selector, spine_width, border, book, boo
         .append('div')
         .style('margin-top', 'auto')
         .style('padding', '2vh 3vw 6vh 3vw')
+        .style('line-height', '0.5vh')
         .style('z-index', 5);
 
     closeup_info.selectAll('p')
@@ -238,11 +229,11 @@ export function closeup_books(container_selector, spine_width, border, book, boo
             .style('position', 'relative')
             .style('top', '0');
 
-        //CREATE THE NUMER OF EXISTING DUPLICATES
+        //CREATE THE NUMBER OF EXISTING DUPLICATES
         let max = 4;  // maximum number of books per column
-        let nC = Math.ceil(duplicates.length / max); // number of columns created
+        let number_columns = Math.ceil(duplicates.length / max); // number of columns created
 
-        for (let i = 0; i < nC; i++) {
+        for (let i = 0; i < number_columns; i++) {
             duplicates_columns = duplicates_container
                 .append('div')
                 .style('display', 'flex')
@@ -252,9 +243,9 @@ export function closeup_books(container_selector, spine_width, border, book, boo
             //BOOKS PER COLUMN
             let start = i * max;
             let end = start + max;
-            let booksInColumn = duplicates.slice(start, end);
+            let books_in_column = duplicates.slice(start, end);
 
-            booksInColumn.forEach(dupBook => {
+            books_in_column.forEach(dupBook => {
                 duplicates_books = duplicates_columns
                     .append('div')
                     .style('width', '7vw')
@@ -263,7 +254,7 @@ export function closeup_books(container_selector, spine_width, border, book, boo
                     .style('position', 'relative')
                     .style('cursor', 'pointer')
                     .on('click', () => {
-                        closeup_books(container_selector, spine_width, border, dupBook, book_color, all_books, update_timeline);
+                        closeup_books(container_selector, spine_width, border, dupBook, book_color, stroke_color, all_books, update_timeline);
                         // updates the bookshelf when the year changes
                         if (update_timeline) update_timeline(dupBook.date, book.date);
                     });

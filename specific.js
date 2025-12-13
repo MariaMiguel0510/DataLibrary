@@ -3,6 +3,8 @@ import { create_year_buttons } from "./specific_functions/year_buttons.js";
 import { draw_books } from "./specific_functions/draw_books.js";
 import { apply_sort, create_sort_buttons } from "./specific_functions/sort_modes.js";
 import { create_selection_buttons } from "./specific_functions/selection_modes.js";
+export let books_dataset = [];
+export let select_interval_from_outside = null;
 
 export function initializeBooksViz(container_selector, spine_width, border, csvFile) {
 
@@ -16,7 +18,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     let current_interval_label = null;
     let sort_buttons_container;
     let current_selection = "genre"; // default
-    let current_sort = "chrono"; // default
+    let current_sort = "a_to_z"; // default
     let latest_books_in_interval = [];
     let original_books_order_by_interval = {};
 
@@ -178,10 +180,14 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
     // DATA PROCESSIGN ---------------------------------------------------------------
     function process_data(data) {
-        full_dataset = data; // keeps the full data set
+        full_dataset = data;
+
+        // limpa o array mantendo a referência
+        books_dataset.length = 0;
+        books_dataset.push(...data);
 
         data.forEach((d, i) => {
-            d.uid = i; // unique ID 
+            d.uid = i;
         });
 
         // get all the possible genres
@@ -310,6 +316,12 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
             }
         }
+
+        select_interval_from_outside = function (year) {
+            // forces the selection of the right interval
+            select_interval_by_year(year, null);
+        };
+
 
 
         // FILTER BOOKS INSIDE THE INTERVAL ----------------------------------------------------------
