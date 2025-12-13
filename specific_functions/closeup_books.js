@@ -214,7 +214,7 @@ export function closeup_books(container_selector, spine_width, border, book, boo
     });
 
     //BOOKS WITH SAME AUTHOR AND TITLE 
-    duplicates = all_books.filter(b => b.name === book.name && b.author === book.author);
+    duplicates = all_books.filter(b => b.name === book.name && b.author === book.author && b.uid !== book.uid);
 
     // if theres more than 1 book with the same title and author
     if (duplicates.length > 1) {

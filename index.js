@@ -24,7 +24,7 @@ window.onload = function () {
     start_random_book(random_book_label);
     mouse_effect(random_book_spine, '#A3CCFF', '#F6F6F6');
 
-    function start_random_book(label_selection, max_length = 25) {
+    function start_random_book(label_selection, max_length = 30) {
 
         // waits till the data is loaded
         let wait_for_data = setInterval(() => {
@@ -32,20 +32,23 @@ window.onload = function () {
                 clearInterval(wait_for_data);
 
                 function update_random_book() {
-                    let full_text = books_dataset[Math.floor(Math.random() * books_dataset.length)].name.toUpperCase();
+                    current_random_book = books_dataset[Math.floor(Math.random() * books_dataset.length)];
 
-                    if (full_text.length <= max_length) {
-                        label_selection.text(full_text);
-                    } else {
-                        let truncated = full_text.slice(0, max_length);
-                        // removes the last incomplete word
-                        let last_space_index = truncated.lastIndexOf(" ");
-                        if (last_space_index > 0) {
-                            truncated = truncated.slice(0, last_space_index);
-                        }
-                        label_selection.text(truncated);
+                    let text = current_random_book.name.toUpperCase();
+
+                    if (text.length <= max_length) {
+                        label_selection.text(text);
+                        return;
                     }
+
+                    let cut = text.slice(0, max_length);
+                    let last_space = cut.lastIndexOf(' ');
+
+                    label_selection.text(
+                        last_space > 0 ? cut.slice(0, last_space) : cut
+                    );
                 }
+
 
                 update_random_book();
                 setInterval(update_random_book, 2000);
@@ -62,7 +65,7 @@ window.onload = function () {
     info_container = container(d3.select('main'), 'div');
     info_spine = spine(info_container, 'div', info_width, `calc(100vh - 5px)`, 0, 2, 'pointer', false, null);
     info_label = label(info_spine, 'h3', 'INFO', 'pointer');
-    mouse_effect(info_spine, '#FF9D52', '#F6F6F6');
+    mouse_effect(info_spine, '#C5E661', '#F6F6F6');
 
     //SHOWS CONTEXT
     //selects the html template and inserts it into info_container
