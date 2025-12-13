@@ -18,7 +18,7 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
     let current_interval_label = null;
     let sort_buttons_container;
     let current_selection = "genre"; // default
-    let current_sort = "a_to_z"; // default
+    let current_sort = "chrono"; // default
     let latest_books_in_interval = [];
     let original_books_order_by_interval = {};
 
