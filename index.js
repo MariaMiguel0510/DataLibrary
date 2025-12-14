@@ -64,7 +64,7 @@ window.onload = function () {
     //INFO BOOK
     info_container = container(d3.select('main'), 'div');
     info_spine = spine(info_container, 'div', info_width, `calc(100vh - 5px)`, 0, 2, 'pointer', false, null);
-    info_label = label(info_spine, 'h3', 'INFO', 'pointer');
+    info_label = label(info_spine, 'h3', 'CONTEXT', 'pointer');
     mouse_effect(info_spine, '#C5E661', '#F6F6F6');
 
     //SHOWS CONTEXT
