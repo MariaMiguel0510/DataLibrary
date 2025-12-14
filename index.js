@@ -52,23 +52,21 @@ window.onload = function () {
 
                 function update_random_book() {
                     current_random_book = books_dataset[Math.floor(Math.random() * books_dataset.length)];
-
                     let text = current_random_book.name.toUpperCase();
 
                     if (text.length <= max_length) {
                         label_selection.text(text);
-                        return;
+                    } else {
+                        let cut = text.slice(0, max_length);
+                        let last_space = cut.lastIndexOf(' ');
+
+                        label_selection.text(
+                            last_space > 0 ? cut.slice(0, last_space) : cut
+                        );
                     }
-
-                    let cut = text.slice(0, max_length);
-                    let last_space = cut.lastIndexOf(' ');
-
-                    label_selection.text(
-                        last_space > 0 ? cut.slice(0, last_space) : cut
-                    );
-
                     update_random_book_color();
                 }
+
 
                 update_random_book();
                 setInterval(update_random_book, 2000);
