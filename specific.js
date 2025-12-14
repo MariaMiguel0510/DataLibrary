@@ -3,6 +3,7 @@ import { create_year_buttons } from "./specific_functions/year_buttons.js";
 import { draw_books } from "./specific_functions/draw_books.js";
 import { apply_sort, create_sort_buttons } from "./specific_functions/sort_modes.js";
 import { create_selection_buttons } from "./specific_functions/selection_modes.js";
+import { genre_colors, genre_stroke_colors } from "./specific_functions/genre_colors.js";
 export let books_dataset = [];
 export let select_interval_from_outside = null;
 
@@ -194,22 +195,6 @@ export function initializeBooksViz(container_selector, spine_width, border, csvF
 
         // get all the possible genres
         let all_genres = Array.from(new Set(data.map(d => d.genre))).sort();
-
-        let genre_colors = {
-            "Suspense": "#F44D27", "Children's Literature": "#FFE365",
-            "Dramatic Literature": "#A8376D", "Comics": "#468168",
-            "Sciences": "#FF9D52", "Fantasy": "#A3CCFF",
-            "Fiction": "#C688CB", "Lifestyle": "#4763E8",
-            "Nonfiction": "#C5E661", "Romance": "#FF589D"
-        };
-
-        let genre_stroke_colors = {
-            "Suspense": "#972C14", "Children's Literature": "#9F8924",
-            "Dramatic Literature": "#53072C", "Comics": "#12412D",
-            "Sciences": "#AF5D1F", "Fantasy": "#3A5D89",
-            "Fiction": "#844189", "Lifestyle": "#14267E",
-            "Nonfiction": "#647B20", "Romance": "#A71B55"
-        };
 
         let global_color_scale = d3.scaleOrdinal()
             .domain(all_genres)

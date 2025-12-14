@@ -1,5 +1,6 @@
 import { initializeBooksViz, books_dataset, select_interval_from_outside } from './specific.js';
 import { closeup_books } from './specific_functions/closeup_books.js';
+import { genre_colors } from './specific_functions/genre_colors.js';
 
 
 let edition_width, edition_container, edition_spine, edition_label;
@@ -10,6 +11,8 @@ let current_random_book = null;
 let info_open = false; // info initially closed 
 let specific_open = false; // specific initially closed 
 let border = 3; // thickness of book border
+let is_hovering_random = false;
+
 
 
 // INITIALIZATION
@@ -22,10 +25,26 @@ window.onload = function () {
     random_book_spine = spine(random_book_container, 'div', random_book_width, '90vh', 0, 1, 'pointer', true, `rotate(13deg) translate(-20.8vh, 5.7vh)`);
     random_book_label = label(random_book_spine, 'h3', 'RANDOM BOOK TITLE', 'pointer');
     start_random_book(random_book_label);
-    mouse_effect(random_book_spine, '#A3CCFF', '#F6F6F6');
+    random_book_spine
+        .on('mouseover', function () {
+            is_hovering_random = true;
+            update_random_book_color();
+        })
+        .on('mouseout', function () {
+            is_hovering_random = false;
+            d3.select(this).style('background-color', '#F6F6F6');
+            random_book_label.style('color', 'black');
+        });
+
+    function update_random_book_color() {
+        if (!is_hovering_random || !current_random_book) return;
+        let genre = current_random_book.genre;
+        let color = genre_colors[genre];
+        random_book_spine.style('background-color', color);
+        random_book_label.style('color', 'black');
+    }
 
     function start_random_book(label_selection, max_length = 30) {
-
         // waits till the data is loaded
         let wait_for_data = setInterval(() => {
             if (books_dataset && books_dataset.length > 0) {
@@ -47,8 +66,9 @@ window.onload = function () {
                     label_selection.text(
                         last_space > 0 ? cut.slice(0, last_space) : cut
                     );
-                }
 
+                    update_random_book_color();
+                }
 
                 update_random_book();
                 setInterval(update_random_book, 2000);
@@ -116,9 +136,11 @@ window.onload = function () {
             specific_spine.dispatch('click');
         }
 
+        let genre = current_random_book.genre;
+        let fill_color = genre_colors[genre];
         // draw the same interval as the book
         select_interval_from_outside(current_random_book.date);
-        closeup_books(specific_container, specific_width, border, current_random_book, '#C688CB', '#000', books_dataset, null);
+        closeup_books(specific_container, specific_width, border, current_random_book, fill_color, '#000', books_dataset, null);
     });
 
 
